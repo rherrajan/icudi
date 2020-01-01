@@ -1,0 +1,5 @@
+{
+  "name": "icudi",
+  "description": "my description of the app",
+  "addons": [ "heroku-postgresql" ]
+}
