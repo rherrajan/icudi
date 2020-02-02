@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,10 +45,7 @@ public class ClickDetecter {
 	private Object changeOwner(Point click, String uuid) {
 		try (Connection connection = dataSource.getConnection()) {
 			Statement stmt = connection.createStatement();
-			// stmt.executeUpdate("DROP TABLE IF EXISTS cells");
-			String createQuery = "CREATE TABLE IF NOT EXISTS cells (x INT NOT NULL, y INT NOT NULL, uuid TEXT, CONSTRAINT cell_id_pk PRIMARY KEY (x,y))";
-			System.out.println(" --- createQuery: " + createQuery);
-			stmt.executeUpdate(createQuery);
+			createCellTable(stmt);
 
 			String deleteQuery = "DELETE FROM cells WHERE (x=" + click.getX() + " AND y= " + click.getY() + ")";
 			System.out.println(" --- deleteQuery: " + deleteQuery);
@@ -68,9 +66,18 @@ public class ClickDetecter {
 		}
 	}
 
+	private void createCellTable(Statement stmt) throws SQLException {
+		// stmt.executeUpdate("DROP TABLE IF EXISTS cells");
+		String createQuery = "CREATE TABLE IF NOT EXISTS cells (x INT NOT NULL, y INT NOT NULL, uuid TEXT, CONSTRAINT cell_id_pk PRIMARY KEY (x,y))";
+		System.out.println(" --- createQuery: " + createQuery);
+		stmt.executeUpdate(createQuery);
+	}
+
 	private Object fetchCells() {
 		try (Connection connection = dataSource.getConnection()) {
 			Statement stmt = connection.createStatement();
+			createCellTable(stmt);
+			
 			ResultSet rs = stmt.executeQuery("SELECT * FROM cells");
 			List<Cell> cells = new ArrayList<Cell>();
 			while (rs.next()) {
