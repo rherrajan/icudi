@@ -12,7 +12,13 @@ function loadMap(){
   map.touchZoom.disable();
   map.doubleClickZoom.disable();
   map.scrollWheelZoom.disable();
-    
+
+  var lc = L.control.locate({
+    position: 'bottomright',
+	flyTo: true,
+	keepCurrentZoomLevel: true
+  }).addTo(map);
+
   mapCells = L.layerGroup();
   mapCells.addTo(map);
 
