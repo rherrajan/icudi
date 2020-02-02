@@ -70,7 +70,7 @@ function drawTile(mapCells, lat, lon, owner) {
 	
 	var tileColor;
 	if(owner){
-	  tileColor = 'red';
+	  tileColor = getColor(owner);
 	} else {
 	  tileColor = 'grey';
 	}
