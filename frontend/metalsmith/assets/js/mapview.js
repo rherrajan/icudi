@@ -63,17 +63,11 @@ function drawTiles(mapCells, lat, lng, cellData) {
 
   mapCells.clearLayers();
   
-  drawTile(mapCells, lat-latTileDistance, lng-lngTileDistance);
-  drawTile(mapCells, lat-latTileDistance, lng);
-  drawTile(mapCells, lat-latTileDistance, lng+lngTileDistance);
-  
-  drawTile(mapCells, lat, lng-lngTileDistance);
-  drawTile(mapCells, lat, lng);
-  drawTile(mapCells, lat, lng+lngTileDistance);
-  
-  drawTile(mapCells, lat+latTileDistance, lng-lngTileDistance);
-  drawTile(mapCells, lat+latTileDistance, lng);
-  drawTile(mapCells, lat+latTileDistance, lng+lngTileDistance);
+  for (x = -2; x <= +1; x++) {
+    for (y = -5; y <= +4; y++) {
+      drawTile(mapCells, lat+(x*latTileDistance), lng+(y*lngTileDistance));
+    }
+  }
   
   for(var cellid in cellData) {
    var cell = cellData[cellid];
