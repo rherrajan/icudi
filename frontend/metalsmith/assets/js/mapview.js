@@ -24,20 +24,6 @@ function loadMap(){
 };
 
 function drawMap() {
-
-/*
-	if(data.plants.length < 1){
-		alert("no plants to show");
-		return;
-	}
-*/
-
-  const plant1 = {lat: 51.508742, lng: -0.120850};
-  const plant2 = {lat: 50, lng: 8};
-
-  // position we will use later
-  //var lat = data.plants[0].lat;
-  //var lon = data.plants[0].lng;
   
   var lat = 50.0075;
   var lon = 8.266;
@@ -86,7 +72,9 @@ function drawTile(map, lat, lon) {
 		    color: 'white'
 		});
 		
-		var clickDetectionURL = createBackendURL("click") + "?lat=" + e.latlng.lat + "&lng=" + e.latlng.lng;
+		var clickDetectionURL = createBackendURL("click") + "?lat=" + e.latlng.lat + "&lng=" + e.latlng.lng + "&uuid=" + getUUID();
+
+
 
 	var xhttp = new XMLHttpRequest();
 	/*
