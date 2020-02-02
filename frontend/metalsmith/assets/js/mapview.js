@@ -1,12 +1,10 @@
 function loadMap(){
 
-/*
-	var mapURL = createBackendURL("databaseMap");
+	var getCellsURL = createBackendURL("getCells") + "?uuid=" + getUUID();
+
 	var xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
-
 		if (this.readyState == 4) {
-
 			if(this.status == 200){
 				drawMap(JSON.parse(xhttp.responseText));
 			} else {
@@ -15,22 +13,18 @@ function loadMap(){
 		};
 	}
 
-	xhttp.open("GET", mapURL, true);
+	xhttp.open("GET", getCellsURL, true);
 	xhttp.send();
-*/
-	
-	drawMap();
-	
 };
 
-function drawMap() {
+function drawMap(cellData) {
   
   var lat = 50.0075;
   var lon = 8.266;
   
   // initialize map
   map = L.map('mapDiv').setView([lat, lon], 18);
-  drawTiles(map, lat, lon);
+  drawTiles(map, lat, lon, cellData);
   
   // copyright
   L.tileLayer( 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -41,7 +35,8 @@ function drawMap() {
 
 }
 
-function drawTiles(map, lat, lon) {
+function drawTiles(map, lat, lon, cellData) {
+
   drawTile(map, lat-0.0005, lon-0.001);
   drawTile(map, lat-0.0005, lon);
   drawTile(map, lat-0.0005, lon+0.001);
@@ -53,11 +48,28 @@ function drawTiles(map, lat, lon) {
   drawTile(map, lat+0.0005, lon-0.001);
   drawTile(map, lat+0.0005, lon);
   drawTile(map, lat+0.0005, lon+0.001);
+  
+  
+  console.log(" --- cellData: ", cellData);
+  
+  for(var cellid in cellData) {
+   var cell = cellData[cellid];
+   drawTile(map, lat+(0.0005*cell.x), lon+(0.001*cell.y), cell.owner);
+  }
+	
 }
 
-function drawTile(map, lat, lon) {
+function drawTile(map, lat, lon, owner) {
 	var bounds = [[lat, lon], [lat+0.0005, lon+0.001]];
-	var rect = L.rectangle(bounds, {color: 'grey', weight: 1}).on('click', function (e) {
+	
+	var tileColor;
+	if(owner){
+	  tileColor = 'red';
+	} else {
+	  tileColor = 'grey';
+	}
+	    
+	var rect = L.rectangle(bounds, {color: tileColor, weight: 1}).on('click', function (e) {
 	    // There event is event object
 	    // there e.type === 'click'
 	    // there e.lanlng === L.LatLng on map
@@ -68,6 +80,7 @@ function drawTile(map, lat, lon) {
 	    
 	    console.info(" --- e: " + e, e);
 	    
+
 	    this.setStyle({
 		    color: 'white'
 		});

@@ -20,50 +20,68 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-
 @Controller
 public class ClickDetecter {
-	
+
 	@Autowired
 	private DataSource dataSource;
-		
-	@RequestMapping(value="/click", method = RequestMethod.GET, produces = "application/json")
+
+	@RequestMapping(value = "/click", method = RequestMethod.GET, produces = "application/json")
 	@ResponseBody
 	Object onClick(@RequestParam Double lat, @RequestParam Double lng, @RequestParam String uuid) throws IOException {
 		Point click = new Point(lat, lng);
 		saveClick(click, uuid);
-		
+
 		return changeOwner(click, uuid);
+	}
+
+	@RequestMapping(value = "/getCells", method = RequestMethod.GET, produces = "application/json")
+	@ResponseBody
+	Object getCells() throws IOException {
+		return fetchCells();
 	}
 
 	private Object changeOwner(Point click, String uuid) {
 		try (Connection connection = dataSource.getConnection()) {
 			Statement stmt = connection.createStatement();
-			//stmt.executeUpdate("DROP TABLE IF EXISTS cells");
+			// stmt.executeUpdate("DROP TABLE IF EXISTS cells");
 			String createQuery = "CREATE TABLE IF NOT EXISTS cells (x INT NOT NULL, y INT NOT NULL, uuid TEXT, CONSTRAINT cell_id_pk PRIMARY KEY (x,y))";
 			System.out.println(" --- createQuery: " + createQuery);
 			stmt.executeUpdate(createQuery);
-			
-			String deleteQuery = "DELETE FROM cells WHERE (x=" + click.getX() +" AND y= "+click.getY() + ")";
+
+			String deleteQuery = "DELETE FROM cells WHERE (x=" + click.getX() + " AND y= " + click.getY() + ")";
 			System.out.println(" --- deleteQuery: " + deleteQuery);
 			stmt.executeUpdate(deleteQuery);
-			
-			String insertQuery = "INSERT INTO cells VALUES (" + click.getX() +", "+click.getY()+", '" + uuid + "')"; //ON CONFLICT DO UPDATE
+
+			String insertQuery = "INSERT INTO cells VALUES (" + click.getX() + ", " + click.getY() + ", '" + uuid
+					+ "')"; // ON CONFLICT DO UPDATE
 			System.out.println(" --- insertQuery: " + insertQuery);
 			stmt.executeUpdate(insertQuery);
-			
+
+			return fetchCells();
+		} catch (Exception e) {
+			StringWriter sw = new StringWriter();
+			e.printStackTrace(new PrintWriter(sw));
+			String stackTrace = sw.toString();
+
+			return "error: " + e + "\n" + stackTrace;
+		}
+	}
+
+	private Object fetchCells() {
+		try (Connection connection = dataSource.getConnection()) {
+			Statement stmt = connection.createStatement();
 			ResultSet rs = stmt.executeQuery("SELECT * FROM cells");
 			List<Cell> cells = new ArrayList<Cell>();
 			while (rs.next()) {
 				cells.add(new Cell(rs.getInt("x"), rs.getInt("y"), rs.getString("uuid")));
 			}
 			return cells;
-			
 		} catch (Exception e) {
 			StringWriter sw = new StringWriter();
 			e.printStackTrace(new PrintWriter(sw));
 			String stackTrace = sw.toString();
-			
+
 			return "error: " + e + "\n" + stackTrace;
 		}
 	}
@@ -72,31 +90,34 @@ public class ClickDetecter {
 
 		try (Connection connection = dataSource.getConnection()) {
 			Statement stmt = connection.createStatement();
-			//stmt.executeUpdate("DROP TABLE IF EXISTS click");
-			stmt.executeUpdate("CREATE TABLE IF NOT EXISTS click (tick TIMESTAMP, lat DOUBLE PRECISION, lng DOUBLE PRECISION, x INT, y INT, uuid TEXT)");
-			String query = "INSERT INTO click VALUES (now(), "+ click.getLat()+", "+ click.getLng()+", " + click.getX() +", "+click.getY()+", '" + uuid + "')";
+			// stmt.executeUpdate("DROP TABLE IF EXISTS click");
+			stmt.executeUpdate(
+					"CREATE TABLE IF NOT EXISTS click (tick TIMESTAMP, lat DOUBLE PRECISION, lng DOUBLE PRECISION, x INT, y INT, uuid TEXT)");
+			String query = "INSERT INTO click VALUES (now(), " + click.getLat() + ", " + click.getLng() + ", "
+					+ click.getX() + ", " + click.getY() + ", '" + uuid + "')";
 			System.out.println(" --- query: " + query);
 			stmt.executeUpdate(query);
-			
+
 			ResultSet rs = stmt.executeQuery("SELECT * FROM click");
 			List<Object> calls = new ArrayList<Object>();
 			while (rs.next()) {
-				calls.add(rs.getTimestamp("tick") + ", " + rs.getInt("x") + "/" + rs.getInt("y") + ", " + rs.getString("uuid"));
+				calls.add(rs.getTimestamp("tick") + ", " + rs.getInt("x") + "/" + rs.getInt("y") + ", "
+						+ rs.getString("uuid"));
 			}
 			return calls;
-			
+
 		} catch (Exception e) {
 			StringWriter sw = new StringWriter();
 			e.printStackTrace(new PrintWriter(sw));
 			String stackTrace = sw.toString();
-			
+
 			return "error: " + e + "\n" + stackTrace;
 		}
 	}
-		
+
 	@ModelAttribute
 	public void setVaryResponseHeader(HttpServletResponse response) {
-	    response.setHeader("Access-Control-Allow-Origin", "*");	    
-	}   
-	
+		response.setHeader("Access-Control-Allow-Origin", "*");
+	}
+
 }
