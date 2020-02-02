@@ -11,15 +11,24 @@ function loadMap(){
     
   mapCells = L.layerGroup();
   mapCells.addTo(map);
-  
+
   // copyright
   L.tileLayer( 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 	  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
 	  subdomains: ['a','b','c']
   }).addTo( map );
   
-	var getCellsURL = createBackendURL("getCells") + "?uuid=" + getUUID();
+  requestRedraw();
+	
+  //Dragend event of map for update marker position
+  map.on('dragend', function(e) {
+    onDragEnd(map.getCenter());
+  });
+};
 
+function requestRedraw() {
+	var getCellsURL = createBackendURL("getCells") + "?uuid=" + getUUID();
+	
 	var xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4) {
@@ -30,10 +39,15 @@ function loadMap(){
 			}
 		};
 	}
-
+	
 	xhttp.open("GET", getCellsURL, true);
 	xhttp.send();
-};
+}
+
+function onDragEnd(newCenter) {
+	console.log(" ---  onDragEnd: " + newCenter);
+	//requestRedraw();
+}
 
 function drawMap(cellData) {
   drawTiles(mapCells, centerLat, centerLng, cellData);
