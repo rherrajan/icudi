@@ -32,8 +32,14 @@ function drawMap(cellData) {
 	  subdomains: ['a','b','c']
   }).addTo( map );
 
-
 }
+
+function changeMap(cellData) {
+  var lat = 50.0075;
+  var lon = 8.266;
+  drawTiles(map, lat, lon, cellData);
+}
+
 
 function drawTiles(map, lat, lon, cellData) {
 
@@ -90,19 +96,16 @@ function drawTile(map, lat, lon, owner) {
 
 
 	var xhttp = new XMLHttpRequest();
-	/*
+
 	xhttp.onreadystatechange = function() {
-
 		if (this.readyState == 4) {
-
 			if(this.status == 200){
-				drawMap(JSON.parse(xhttp.responseText));
+				changeMap(JSON.parse(xhttp.responseText));
 			} else {
 				alert("could not connect to database. http status: " + this.status);
 			}
 		};
 	}
-	*/
 	
 	xhttp.open("GET", clickDetectionURL, true);
 	xhttp.send();
