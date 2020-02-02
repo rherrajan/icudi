@@ -1,10 +1,14 @@
+
+boardCenterLat = 50.0075;
+boardCenterLng = 8.266;
+
+latTileDistance = 0.0005;
+lngTileDistance = 0.001;
+
 function loadMap(){
 
-  centerLat = 50.0075;
-  centerLng = 8.266;
-  
   // initialize map
-  var map = L.map('mapDiv', { zoomControl: false }).setView([centerLat, centerLng], 18);
+  var map = L.map('mapDiv', { zoomControl: false }).setView([boardCenterLat, boardCenterLng], 18);
   map.touchZoom.disable();
   map.doubleClickZoom.disable();
   map.scrollWheelZoom.disable();
@@ -18,7 +22,7 @@ function loadMap(){
 	  subdomains: ['a','b','c']
   }).addTo( map );
   
-  requestRedraw();
+  requestRedraw(boardCenterLat, boardCenterLng);
 	
   //Dragend event of map for update marker position
   map.on('dragend', function(e) {
@@ -26,14 +30,14 @@ function loadMap(){
   });
 };
 
-function requestRedraw() {
-	var getCellsURL = createBackendURL("getCells") + "?uuid=" + getUUID();
-	
+function requestRedraw(lat, lng) {
+	var getCellsURL = createBackendURL("getCells") + "?uuid=" + getUUID() + "&lat=" + lat + "&lng=" + lng;
+		
 	var xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4) {
 			if(this.status == 200){
-				drawMap(JSON.parse(xhttp.responseText));
+				drawMap(JSON.parse(xhttp.responseText), lat, lng);
 			} else {
 				alert("could not connect to database. http status: " + this.status);
 			}
@@ -45,46 +49,41 @@ function requestRedraw() {
 }
 
 function onDragEnd(newCenter) {
-	console.log(" ---  onDragEnd: " + newCenter);
-	//requestRedraw();
+	console.log(" ---  onDragEnd: ", newCenter);
+	var lat = Math.floor(newCenter.lat / latTileDistance) * latTileDistance;
+	var lng = Math.floor(newCenter.lng / lngTileDistance) * lngTileDistance;
+	requestRedraw(lat, lng);
 }
 
-function drawMap(cellData) {
-  drawTiles(mapCells, centerLat, centerLng, cellData);
+function drawMap(cellData, lat, lng) {
+  drawTiles(mapCells, lat, lng, cellData);
 }
 
-function changeMap(cellData) {
-  var lat = 50.0075;
-  var lon = 8.266;
-  drawTiles(mapCells, lat, lon, cellData);
-}
-
-
-function drawTiles(mapCells, lat, lon, cellData) {
+function drawTiles(mapCells, lat, lng, cellData) {
 
   mapCells.clearLayers();
   
-  drawTile(mapCells, lat-0.0005, lon-0.001);
-  drawTile(mapCells, lat-0.0005, lon);
-  drawTile(mapCells, lat-0.0005, lon+0.001);
+  drawTile(mapCells, lat-latTileDistance, lng-lngTileDistance);
+  drawTile(mapCells, lat-latTileDistance, lng);
+  drawTile(mapCells, lat-latTileDistance, lng+lngTileDistance);
   
-  drawTile(mapCells, lat, lon-0.001);
-  drawTile(mapCells, lat, lon);
-  drawTile(mapCells, lat, lon+0.001);
+  drawTile(mapCells, lat, lng-lngTileDistance);
+  drawTile(mapCells, lat, lng);
+  drawTile(mapCells, lat, lng+lngTileDistance);
   
-  drawTile(mapCells, lat+0.0005, lon-0.001);
-  drawTile(mapCells, lat+0.0005, lon);
-  drawTile(mapCells, lat+0.0005, lon+0.001);
+  drawTile(mapCells, lat+latTileDistance, lng-lngTileDistance);
+  drawTile(mapCells, lat+latTileDistance, lng);
+  drawTile(mapCells, lat+latTileDistance, lng+lngTileDistance);
   
   for(var cellid in cellData) {
    var cell = cellData[cellid];
-   drawTile(mapCells, lat+(0.0005*cell.x), lon+(0.001*cell.y), cell.owner);
+   drawTile(mapCells, boardCenterLat+(latTileDistance*cell.x), boardCenterLng+(lngTileDistance*cell.y), cell.owner);
   }
 	
 }
 
-function drawTile(mapCells, lat, lon, owner) {
-	var bounds = [[lat, lon], [lat+0.0005, lon+0.001]];
+function drawTile(mapCells, lat, lng, owner) {
+	var bounds = [[lat, lng], [lat+0.0005, lng+0.001]];
 	
 	var tileColor;
 	if(owner){
@@ -115,9 +114,7 @@ function drawTile(mapCells, lat, lon, owner) {
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4) {
 			if(this.status == 200){
-			    //mapCells.clearLayers();
-			    
-				changeMap(JSON.parse(xhttp.responseText));
+				drawMap(JSON.parse(xhttp.responseText), lat, lng);
 			} else {
 				alert("could not connect to database. http status: " + this.status);
 			}

@@ -38,8 +38,8 @@ public class ClickDetecter {
 
 	@RequestMapping(value = "/getCells", method = RequestMethod.GET, produces = "application/json")
 	@ResponseBody
-	Object getCells() throws IOException {
-		return fetchCells();
+	Object getCells(@RequestParam Double lat, @RequestParam Double lng) throws IOException {
+		return fetchCells(lat, lng);
 	}
 
 	private Object changeOwner(Point click, String uuid) {
@@ -56,7 +56,7 @@ public class ClickDetecter {
 			System.out.println(" --- insertQuery: " + insertQuery);
 			stmt.executeUpdate(insertQuery);
 
-			return fetchCells();
+			return fetchCells(click.getLat(), click.getLng());
 		} catch (Exception e) {
 			StringWriter sw = new StringWriter();
 			e.printStackTrace(new PrintWriter(sw));
@@ -73,7 +73,7 @@ public class ClickDetecter {
 		stmt.executeUpdate(createQuery);
 	}
 
-	private Object fetchCells() {
+	private Object fetchCells(Double lat, Double lng) {
 		try (Connection connection = dataSource.getConnection()) {
 			Statement stmt = connection.createStatement();
 			createCellTable(stmt);
