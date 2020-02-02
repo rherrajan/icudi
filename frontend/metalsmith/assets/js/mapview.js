@@ -4,7 +4,11 @@ function loadMap(){
   centerLng = 8.266;
   
   // initialize map
-  var map = L.map('mapDiv').setView([centerLat, centerLng], 18);
+  var map = L.map('mapDiv', { zoomControl: false }).setView([centerLat, centerLng], 18);
+  map.touchZoom.disable();
+  map.doubleClickZoom.disable();
+  map.scrollWheelZoom.disable();
+    
   mapCells = L.layerGroup();
   mapCells.addTo(map);
   
