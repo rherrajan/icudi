@@ -1,6 +1,6 @@
 function getColor(uuid) {
   var hash = hashCode(uuid);
-  var hue = (hash % 1000) / 1000;
+  var hue = Math.abs((hash % 1000) / 1000);
   var rgbColor = HSVtoRGB(hue, 1, 1);
   var hexColor = '#' + rgbToHex(rgbColor.r) +''+ rgbToHex(rgbColor.g) +''+ rgbToHex(rgbColor.b);
   return hexColor;
