@@ -5,11 +5,13 @@ public class Cell {
 	private int x;
 	private int y;
 	private String owner;
+	private String value;
 
-	public Cell(int x, int y, String owner) {
+	public Cell(int x, int y, String owner, String value) {
 		this.x = x;
 		this.y = y;
 		this.owner = owner;
+		this.value = value;
 	}
 
 	@Override
@@ -27,6 +29,10 @@ public class Cell {
 
 	public String getOwner() {
 		return owner;
+	}
+
+	public String getValue() {
+		return value;
 	}
 	
 }

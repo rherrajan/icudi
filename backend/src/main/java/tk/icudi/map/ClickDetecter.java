@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
@@ -42,6 +43,22 @@ public class ClickDetecter {
 		return fetchCells(lat, lng);
 	}
 
+	@RequestMapping(value = "/dropDB", method = RequestMethod.GET, produces = "application/json")
+	@ResponseBody
+	Object dropDB() throws IOException {
+		try (Connection connection = dataSource.getConnection()) {
+			Statement stmt = connection.createStatement();
+			stmt.executeUpdate("DROP TABLE IF EXISTS cells");
+			return "{\"result\":\"success\"}";
+		} catch (Exception e) {
+			StringWriter sw = new StringWriter();
+			e.printStackTrace(new PrintWriter(sw));
+			String stackTrace = sw.toString();
+
+			return "error: " + e + "\n" + stackTrace;
+		}
+	}
+	
 	private Object changeOwner(Point click, String uuid) {
 		try (Connection connection = dataSource.getConnection()) {
 			Statement stmt = connection.createStatement();
@@ -51,13 +68,17 @@ public class ClickDetecter {
 			System.out.println(" --- deleteQuery: " + deleteQuery);
 			stmt.executeUpdate(deleteQuery);
 
+			int value = getCellValue(click);
+			System.out.println(" --- getCellValue: " + value);
 			String insertQuery = "INSERT INTO cells VALUES (" + click.getX() + ", " + click.getY() + ", '" + uuid
-					+ "')"; // ON CONFLICT DO UPDATE
+					+ "', " + value + ")"; // ON CONFLICT DO UPDATE
 			System.out.println(" --- insertQuery: " + insertQuery);
 			stmt.executeUpdate(insertQuery);
 
 			return fetchCells(click.getLat(), click.getLng());
 		} catch (Exception e) {
+			e.printStackTrace();
+			
 			StringWriter sw = new StringWriter();
 			e.printStackTrace(new PrintWriter(sw));
 			String stackTrace = sw.toString();
@@ -66,9 +87,28 @@ public class ClickDetecter {
 		}
 	}
 
+	private int getCellValue(Point click) {
+		
+		int hash = (click.getX() + "" + click.getY()).hashCode();
+		Random generator = new Random(hash);
+		
+		for(int level=1; level<=20; level++) {
+			int randomNumber = generateNumberBetween(generator, 1, 3);
+			if(randomNumber == 1) {
+				return level;
+			}
+		}
+		
+		return 20;
+	}
+
+	/** low is inclusive. high is inclusive */
+	private static int generateNumberBetween(Random generator, int low, int high) {
+		return generator.nextInt(high+1-low) + low;
+	}
+	
 	private void createCellTable(Statement stmt) throws SQLException {
-		// stmt.executeUpdate("DROP TABLE IF EXISTS cells");
-		String createQuery = "CREATE TABLE IF NOT EXISTS cells (x INT NOT NULL, y INT NOT NULL, uuid TEXT, CONSTRAINT cell_id_pk PRIMARY KEY (x,y))";
+		String createQuery = "CREATE TABLE IF NOT EXISTS cells (x INT NOT NULL, y INT NOT NULL, uuid TEXT, value INT, CONSTRAINT cell_id_pk PRIMARY KEY (x,y))";
 		System.out.println(" --- createQuery: " + createQuery);
 		stmt.executeUpdate(createQuery);
 	}
@@ -81,7 +121,7 @@ public class ClickDetecter {
 			ResultSet rs = stmt.executeQuery("SELECT * FROM cells");
 			List<Cell> cells = new ArrayList<Cell>();
 			while (rs.next()) {
-				cells.add(new Cell(rs.getInt("x"), rs.getInt("y"), rs.getString("uuid")));
+				cells.add(new Cell(rs.getInt("x"), rs.getInt("y"), rs.getString("uuid"), rs.getString("value")));
 			}
 			return cells;
 		} catch (Exception e) {

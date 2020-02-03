@@ -26,7 +26,7 @@ function loadMap(){
   playerCells.addTo(map);
   
   // copyright
-  L.tileLayer( 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  L.tileLayer( 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 	  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
 	  subdomains: ['a','b','c']
   }).addTo( map );
@@ -46,7 +46,8 @@ function requestRedraw(lat, lng) {
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4) {
 			if(this.status == 200){
-				drawMap(JSON.parse(xhttp.responseText), lat, lng);
+			    var responseJsonData = JSON.parse(xhttp.responseText);
+				drawMap(responseJsonData, lat, lng);
 			} else {
 				alert("could not connect to database. http status: " + this.status);
 			}
@@ -58,7 +59,6 @@ function requestRedraw(lat, lng) {
 }
 
 function onDragEnd(newCenter) {
-	console.log(" ---  onDragEnd: ", newCenter);
 	var lat = Math.floor(newCenter.lat / latTileDistance) * latTileDistance;
 	var lng = Math.floor(newCenter.lng / lngTileDistance) * lngTileDistance;
 	requestRedraw(lat, lng);
@@ -82,19 +82,25 @@ function drawPlayerTiles(lat, lng, cellData) {
   playerCells.clearLayers();
   for(var cellid in cellData) {
     var cell = cellData[cellid];
-    drawPlayerTile( boardCenterLat+(latTileDistance*cell.x), boardCenterLng+(lngTileDistance*cell.y), cell.owner);
+    drawPlayerTile( boardCenterLat+(latTileDistance*cell.x), boardCenterLng+(lngTileDistance*cell.y), cell.owner, cell.value);
   }
 }
 
-function drawPlayerTile(lat, lng, owner) {
+function drawPlayerTile(lat, lng, owner, value) {
 	var bounds = [[lat, lng], [lat+0.0005, lng+0.001]];
-	var tileColor = getColor(owner);   
-	var rect = L.rectangle(bounds, {color: tileColor, weight: 1}).on('click', function (e) {
+	var tileColor = getColor(owner, value);   
+	var fillOpacity = 0.2 + 0.1 * (value-1);
+	if (fillOpacity > 0.9) {
+	  fillOpacity = 0.9
+	} 
+	
+	var rect = L.rectangle(bounds, {color: tileColor, fillOpacity: fillOpacity}).on('click', function (e) {
 	    this.setStyle({
 		    color: 'white'
 		});
 		requestPlayerRedraw(e);
 	}).addTo(playerCells);
+	
 }
 
 function drawTile(mapCells, lat, lng) {
@@ -116,7 +122,8 @@ function requestPlayerRedraw(e) {
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4) {
 			if(this.status == 200){
-				drawPlayerTiles(e.latlng.lat, e.latlng.lng, JSON.parse(xhttp.responseText));
+			    var responseJsonData = JSON.parse(xhttp.responseText);
+				drawPlayerTiles(e.latlng.lat, e.latlng.lng, responseJsonData);
 			} else {
 				alert("could not connect to database. http status: " + this.status);
 			}
