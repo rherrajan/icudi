@@ -8,7 +8,7 @@ lngTileDistance = 0.001;
 function loadMap(){
 
   // initialize map
-  var map = L.map('mapDiv', { zoomControl: false }).setView([boardCenterLat, boardCenterLng], 18);
+  map = L.map('mapDiv', { zoomControl: false }).setView([boardCenterLat, boardCenterLng], 18);
   map.touchZoom.disable();
   map.doubleClickZoom.disable();
   map.scrollWheelZoom.disable();
@@ -133,3 +133,31 @@ function requestPlayerRedraw(e) {
 	xhttp.open("GET", clickDetectionURL, true);
 	xhttp.send();
 }
+
+function startGame() {
+	
+	var getQuestsURL = createBackendURL("getQuests") + "?uuid=" + getUUID() + "&lat=" + map.getCenter().lat + "&lng=" + map.getCenter().lng;
+						
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4) {
+			if(this.status == 200){
+			    var responseJsonData = JSON.parse(xhttp.responseText);
+				console.log(" --- geosearch: ", responseJsonData.query.geosearch);
+				console.log(" --- title: ", responseJsonData.query.geosearch[0].title);
+				var questname = document.getElementsByClassName("questname");
+				console.log(" --- questname: ", questname);
+				questname[0].innerHTML=responseJsonData.query.geosearch[0].title;
+			} else {
+				alert("could not connect to database. http status: " + this.status);
+			}
+		};
+	}
+	
+	xhttp.open("GET", getQuestsURL, true);
+	xhttp.send();
+}
+
+
+
+
