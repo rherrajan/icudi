@@ -147,7 +147,8 @@ function startGame() {
 			if(this.status == 200){
 			    var responseJsonData = JSON.parse(xhttp.responseText);
 				var questname = document.getElementsByClassName("questname")[0];
-				console.log(responseJsonData.query.geosearch[0].title + ": https://de.wikipedia.org/?curid="+responseJsonData.query.geosearch[0].pageid);
+				var hit = responseJsonData.query.geosearch[0];
+				console.log(hit.title + ": https://de.wikipedia.org/?curid="+hit.pageid);
 				questname.innerHTML=responseJsonData.query.geosearch[0].title;
 			} else {
 				alert("could not connect to database. http status: " + this.status);

@@ -28,6 +28,9 @@ public class ClickDetecter {
 	@Autowired
 	private DataSource dataSource;
 
+	@Autowired
+	private QuestDAO questDAO;
+
 	@RequestMapping(value = "/click", method = RequestMethod.GET, produces = "application/json")
 	@ResponseBody
 	Object onClick(@RequestParam Double lat, @RequestParam Double lng, @RequestParam String uuid) throws IOException {
@@ -60,20 +63,26 @@ public class ClickDetecter {
 	}
 	
 	private Object changeOwner(Point click, String uuid) {
+		
 		try (Connection connection = dataSource.getConnection()) {
+			
 			Statement stmt = connection.createStatement();
-			createCellTable(stmt);
+			
+			boolean success = questDAO.setClaimed(stmt, click);
+			if(success) {
+				createCellTable(stmt);
 
-			String deleteQuery = "DELETE FROM cells WHERE (x=" + click.getX() + " AND y= " + click.getY() + ")";
-			System.out.println(" --- deleteQuery: " + deleteQuery);
-			stmt.executeUpdate(deleteQuery);
+				String deleteQuery = "DELETE FROM cells WHERE (x=" + click.getX() + " AND y= " + click.getY() + ")";
+//				System.out.println(" --- deleteQuery: " + deleteQuery);
+				stmt.executeUpdate(deleteQuery);
 
-			int value = getCellValue(click);
-			System.out.println(" --- getCellValue: " + value);
-			String insertQuery = "INSERT INTO cells VALUES (" + click.getX() + ", " + click.getY() + ", '" + uuid
-					+ "', " + value + ")"; // ON CONFLICT DO UPDATE
-			System.out.println(" --- insertQuery: " + insertQuery);
-			stmt.executeUpdate(insertQuery);
+				int value = getCellValue(click);
+//				System.out.println(" --- getCellValue: " + value);
+				String insertQuery = "INSERT INTO cells VALUES (" + click.getX() + ", " + click.getY() + ", '" + uuid
+						+ "', " + value + ")"; // ON CONFLICT DO UPDATE
+//				System.out.println(" --- insertQuery: " + insertQuery);
+				stmt.executeUpdate(insertQuery);
+			}
 
 			return fetchCells(click.getLat(), click.getLng());
 		} catch (Exception e) {
@@ -109,7 +118,7 @@ public class ClickDetecter {
 	
 	private void createCellTable(Statement stmt) throws SQLException {
 		String createQuery = "CREATE TABLE IF NOT EXISTS cells (x INT NOT NULL, y INT NOT NULL, uuid TEXT, value INT, CONSTRAINT cell_id_pk PRIMARY KEY (x,y))";
-		System.out.println(" --- createQuery: " + createQuery);
+		//System.out.println(" --- createQuery: " + createQuery);
 		stmt.executeUpdate(createQuery);
 	}
 
@@ -142,7 +151,7 @@ public class ClickDetecter {
 					"CREATE TABLE IF NOT EXISTS click (tick TIMESTAMP, lat DOUBLE PRECISION, lng DOUBLE PRECISION, x INT, y INT, uuid TEXT)");
 			String query = "INSERT INTO click VALUES (now(), " + click.getLat() + ", " + click.getLng() + ", "
 					+ click.getX() + ", " + click.getY() + ", '" + uuid + "')";
-			System.out.println(" --- query: " + query);
+			//System.out.println(" --- query: " + query);
 			stmt.executeUpdate(query);
 
 			ResultSet rs = stmt.executeQuery("SELECT * FROM click");

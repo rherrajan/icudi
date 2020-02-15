@@ -8,6 +8,7 @@ import java.util.Random;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -21,6 +22,9 @@ import org.springframework.web.client.RestTemplate;
 public class QuestProvider {
 
 	private static String geosearchUrlTemplate = "https://de.wikipedia.org/w/api.php?action=query&list=geosearch&gsradius=10000&gslimit=1&gscoord={0}|{1}&gsprop=type&format=json";
+	
+	@Autowired
+	private QuestDAO questDAO;
 	
 	@RequestMapping(value = "/getQuests", method = RequestMethod.GET, produces = "application/json")
 	@ResponseBody
@@ -42,8 +46,9 @@ public class QuestProvider {
 		String usedURL = MessageFormat.format(geosearchUrlTemplate, usedLat, usedLng);	
 		RestTemplate restTemplate = new RestTemplate();
 		ResponseEntity<String> response = restTemplate.getForEntity(usedURL, String.class);
-
-		if(!response.getStatusCode().is2xxSuccessful()){
+		if(response.getStatusCode().is2xxSuccessful()){
+			questDAO.saveQuest(response, uuid);
+		} else {
 			System.out.println("error: " + response);
 		}
 

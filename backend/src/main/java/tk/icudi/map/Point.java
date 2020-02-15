@@ -23,6 +23,10 @@ public class Point {
 		//System.out.println(" --- created new point: (" + x + "/" + y + "), ("+lat+"/"+lng+")");	
 	}
 
+	public Point(String latString, String lonString) {
+		this(Double.valueOf(latString),Double.valueOf(lonString));
+	}
+
 	public Point move(int xInc, int yInc) {
 		double lat = this.lat+(xInc*latTileDistance);
 		double lng = this.lng+(yInc*lngTileDistance);
