@@ -136,6 +136,9 @@ function requestPlayerRedraw(e) {
 
 function startGame() {
 	
+	var questname = document.getElementsByClassName("questname")[0];
+	questname.innerHTML="...";
+	
 	var getQuestsURL = createBackendURL("getQuests") + "?uuid=" + getUUID() + "&lat=" + map.getCenter().lat + "&lng=" + map.getCenter().lng;
 						
 	var xhttp = new XMLHttpRequest();
@@ -143,11 +146,8 @@ function startGame() {
 		if (this.readyState == 4) {
 			if(this.status == 200){
 			    var responseJsonData = JSON.parse(xhttp.responseText);
-				console.log(" --- geosearch: ", responseJsonData.query.geosearch);
-				console.log(" --- title: ", responseJsonData.query.geosearch[0].title);
-				var questname = document.getElementsByClassName("questname");
-				console.log(" --- questname: ", questname);
-				questname[0].innerHTML=responseJsonData.query.geosearch[0].title;
+				var questname = document.getElementsByClassName("questname")[0];
+				questname.innerHTML=responseJsonData.query.geosearch[0].title;
 			} else {
 				alert("could not connect to database. http status: " + this.status);
 			}

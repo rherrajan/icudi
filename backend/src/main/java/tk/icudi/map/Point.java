@@ -5,6 +5,9 @@ public class Point {
 	double middleLat = 50.0075;
 	double middleLng = 8.266;
 	
+	double latTileDistance = 0.0005;
+	double lngTileDistance = 0.001;
+	
 	private Double lat;
 	private Double lng;
 	private int x;
@@ -12,19 +15,20 @@ public class Point {
 	
 	public Point(Double lat, Double lng) {
 		this.lat = lat;
-		this.lng = lng;
-		
-		System.out.println(" --- lat: " + lat);
-		System.out.println(" --- lng: " + lng);
-		
-		double xd = (lat-middleLat)*(10000/5);
-		double yd = (lng-middleLng)*(1000);
-		
+		this.lng = lng;		
+		double xd = (lat-middleLat)/latTileDistance;
+		double yd = (lng-middleLng)/lngTileDistance;
 		this.x = (int)Math.floor(xd);
 		this.y = (int)Math.floor(yd);
-		System.out.println(" --- x: " + x + "/" + y);	
+		//System.out.println(" --- created new point: (" + x + "/" + y + "), ("+lat+"/"+lng+")");	
 	}
 
+	public Point move(int xInc, int yInc) {
+		double lat = this.lat+(xInc*latTileDistance);
+		double lng = this.lng+(yInc*lngTileDistance);
+		return new Point(lat, lng);
+	}
+	
 	public Double getLat() {
 		return lat;
 	}
