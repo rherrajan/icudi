@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
-import java.util.Locale.Category;
 import java.util.Random;
 
 import javax.servlet.http.HttpServletResponse;
@@ -22,8 +21,6 @@ import org.springframework.web.client.RestTemplate;
 public class QuestProvider {
 
 	private static String geosearchUrlTemplate = "https://de.wikipedia.org/w/api.php?action=query&list=geosearch&gsradius=10000&gslimit=1&gscoord={0}|{1}&gsprop=type&format=json";
-
-	// https://de.wikipedia.org/?curid=2412138
 	
 	@RequestMapping(value = "/getQuests", method = RequestMethod.GET, produces = "application/json")
 	@ResponseBody
