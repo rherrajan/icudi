@@ -149,7 +149,11 @@ function startGame() {
 				var questname = document.getElementsByClassName("questname")[0];
 				var hit = responseJsonData.query.geosearch[0];
 				console.log(hit.title + ": https://de.wikipedia.org/?curid="+hit.pageid);
-				questname.innerHTML=responseJsonData.query.geosearch[0].title;
+				questname.innerHTML=hit.title;
+
+				var wikipediaLink = document.getElementsByClassName("wikipedia-link")[0];
+				wikipediaLink.href="https://de.wikipedia.org/?curid="+hit.pageid;
+				
 			} else {
 				alert("could not connect to database. http status: " + this.status);
 			}
