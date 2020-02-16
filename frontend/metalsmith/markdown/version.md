@@ -1,8 +1,6 @@
 ---
 title: Version
 description: Systeminformation about the dynamic backend
-layout: default.hbs
-menu-order: 1
+layout: version.hbs
+menu-order: 99
 ---
-
-TODO: Javascript magic
