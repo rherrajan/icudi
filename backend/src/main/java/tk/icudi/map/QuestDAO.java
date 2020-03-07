@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
@@ -131,7 +132,26 @@ public class QuestDAO {
 		return quests;
 	}
 
+	public Object getHighscore() {
+		try (Connection connection = dataSource.getConnection()) {
+			Statement stmt = connection.createStatement();
+			ResultSet rs = stmt.executeQuery("SELECT uuid, COUNT (uuid) FROM quest WHERE claimed=true GROUP BY uuid ORDER BY count DESC");
+			
+			List<Object> score = new ArrayList<Object>();
+			while (rs.next()) {
+				score.add(Arrays.asList(rs.getString("uuid"), rs.getString("count")));
+			}
+			return score;
+			
+		} catch (Exception e) {
+			StringWriter sw = new StringWriter();
+			e.printStackTrace(new PrintWriter(sw));
+			String stackTrace = sw.toString();
 
+			return "error: " + e + "\n" + stackTrace;
+		}
+	}
+	
 
 	
 	@RequestMapping(value = "/dropQuestDB", method = RequestMethod.GET, produces = "application/json")
@@ -154,5 +174,7 @@ public class QuestDAO {
 	public void setVaryResponseHeader(HttpServletResponse response) {
 		response.setHeader("Access-Control-Allow-Origin", "*");
 	}
+
+
 
 }
