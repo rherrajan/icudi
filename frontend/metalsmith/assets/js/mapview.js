@@ -88,8 +88,8 @@ function drawPlayerTiles(lat, lng, cellData) {
 
 function drawPlayerTile(lat, lng, owner, value) {
 	var bounds = [[lat, lng], [lat+0.0005, lng+0.001]];
-	var tileColor = getColor(owner, value);   
-	var fillOpacity = 0.2 + 0.1 * (value-1);
+	var tileColor = getColor(owner, 1);   
+	var fillOpacity = 0.2 + 0.1 * (1);
 	if (fillOpacity > 0.9) {
 	  fillOpacity = 0.9
 	} 
