@@ -25,6 +25,9 @@ function loadMap(){
   playerCells = L.layerGroup();
   playerCells.addTo(map);
   
+  hitMarkers = L.layerGroup();
+  hitMarkers.addTo(map);
+  
   // copyright
   L.tileLayer( 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 	  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -124,8 +127,10 @@ function requestPlayerRedraw(e) {
 			if(this.status == 200){
 			    var responseJsonData = JSON.parse(xhttp.responseText);
 			    if(responseJsonData.success){
-			    	alert(responseJsonData.foundItem.title + " gefunden");
 			    	console.log("foundItem: ", responseJsonData.foundItem);
+			        L.marker([responseJsonData.foundItem.lat, responseJsonData.foundItem.lon]).addTo(hitMarkers);
+			    	alert(responseJsonData.foundItem.title + " gefunden");
+
 			    }
 				drawPlayerTiles(e.latlng.lat, e.latlng.lng, responseJsonData.cells);
 			} else {
