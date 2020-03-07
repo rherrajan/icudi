@@ -84,7 +84,7 @@ public class QuestDAO {
 
 	}
 
-	public boolean setClaimed(Statement stmt, Point click) throws SQLException {
+	public String setClaimed(Statement stmt, Point click) throws SQLException {
 
 		createTable(stmt);
 		
@@ -94,14 +94,15 @@ public class QuestDAO {
 		boolean hasItems = rs.next();
 //		System.out.println(" --- hasItems: " + hasItems);
 		if(!hasItems) {
-			return false;
+			return "";
 		}
-		System.out.println("  --- found: " + rs.getString("hit"));
+		String foundItem = rs.getString("hit");
+		System.out.println("  --- found: " + foundItem);
 		
 		String updateQuery = "UPDATE quest SET claimed=true WHERE x=" + click.getX() +" AND y=" + click.getY();
 //		System.out.println(" --- updateQuery: " + updateQuery);
 		stmt.executeUpdate(updateQuery);	    
-		return true;
+		return foundItem;
 	}
 	
 	@RequestMapping(value = "/selectQuests", method = RequestMethod.GET, produces = "application/json")

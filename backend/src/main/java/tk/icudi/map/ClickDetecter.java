@@ -14,6 +14,9 @@ import java.util.Random;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.tomcat.util.json.JSONParser;
+import org.apache.tomcat.util.json.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -35,6 +38,7 @@ public class ClickDetecter {
 		public String error;
 		public Object cells;
 		public boolean success;
+		public Object foundItem;
 	}
 	
 	@RequestMapping(value = "/click", method = RequestMethod.GET, produces = "application/json")
@@ -81,9 +85,19 @@ public class ClickDetecter {
 	}
 	
 	private Object changeOwner(Point click, String uuid, Statement stmt, Response response) throws SQLException {
-		boolean success = questDAO.setClaimed(stmt, click);
-		response.success = success;
-		if(success) {
+		String foundItem = questDAO.setClaimed(stmt, click);
+		
+		response.success = StringUtils.isNotEmpty(foundItem);
+		if(response.success) {
+			
+			JSONParser parser = new JSONParser(foundItem);
+			try {
+				response.foundItem = parser.anything();
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 			createCellTable(stmt);
 
 			String deleteQuery = "DELETE FROM cells WHERE (x=" + click.getX() + " AND y= " + click.getY() + ")";

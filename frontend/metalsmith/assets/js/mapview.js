@@ -123,6 +123,10 @@ function requestPlayerRedraw(e) {
 		if (this.readyState == 4) {
 			if(this.status == 200){
 			    var responseJsonData = JSON.parse(xhttp.responseText);
+			    if(responseJsonData.success){
+			    	alert(responseJsonData.foundItem.title + " gefunden");
+			    	console.log("foundItem: ", responseJsonData.foundItem);
+			    }
 				drawPlayerTiles(e.latlng.lat, e.latlng.lng, responseJsonData.cells);
 			} else {
 				alert("could not connect to database. http status: " + this.status);
