@@ -181,8 +181,7 @@ function startGame() {
 	var questname = document.getElementsByClassName("questname")[0];
 	questname.innerHTML="...";
 	
-	var getQuestsURL = createBackendURL("getQuests") + "?uuid=" + getUUID() + "&lat=" + map.getCenter().lat + "&lng=" + map.getCenter().lng;
-						
+	var getQuestsURL = createBackendURL("getQuests") + "?uuid=" + getUUID() + "&lat=" + map.getCenter().lat + "&lng=" + map.getCenter().lng;				
 	var xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4) {
@@ -201,11 +200,42 @@ function startGame() {
 			}
 		};
 	}
-	
 	xhttp.open("GET", getQuestsURL, true);
+	xhttp.send();
+	
+	checkForUpdates();
+}
+
+function checkForUpdates() {
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4) {
+			if(this.status == 200){
+			    var responseJsonData = JSON.parse(xhttp.responseText);
+				onVersionResponse(responseJsonData);
+			} else {
+				alert("could not connect to database. http status: " + this.status);
+			}
+		};
+	}
+	xhttp.open("GET", createBackendURL('systeminfo'), true);
 	xhttp.send();
 }
 
+
+function onVersionResponse(data) {
+  var newBuildtime = data.buildtime;
+  if(typeof oldBuildtime !== 'undefined'){
+  	if(oldBuildtime != newBuildtime){
+  	    console.log("oldBuildtime: " + oldBuildtime + "\n newBuildtime: " + newBuildtime);
+  	    alert("neue Software.Version entdeckt. Datum: " + newBuildtime + ". Lade neu");
+  	    location.reload(); 
+  	}
+  }
+  
+  oldBuildtime = newBuildtime;
+  //console.log("software version: " + oldBuildtime);
+}
 
 
 
