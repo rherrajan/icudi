@@ -31,13 +31,31 @@ public class ClickDetecter {
 	@Autowired
 	private QuestDAO questDAO;
 
+	class Response {
+		public String error;
+		public Object cells;
+		public boolean success;
+	}
+	
 	@RequestMapping(value = "/click", method = RequestMethod.GET, produces = "application/json")
 	@ResponseBody
-	Object onClick(@RequestParam Double lat, @RequestParam Double lng, @RequestParam String uuid) throws IOException {
+	Response onClick(@RequestParam Double lat, @RequestParam Double lng, @RequestParam String uuid) throws IOException {
 		Point click = new Point(lat, lng);
 		saveClick(click, uuid);
 
-		return changeOwner(click, uuid);
+		Response response = new Response();
+		try (Connection connection = dataSource.getConnection()) {
+			Statement stmt = connection.createStatement();
+			changeOwner(click, uuid, stmt, response); 
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter sw = new StringWriter();
+			e.printStackTrace(new PrintWriter(sw));
+			String stackTrace = sw.toString();
+			response.error = "error: " + e + "\n" + stackTrace;
+		}
+		
+		return response;
 	}
 
 	@RequestMapping(value = "/getCells", method = RequestMethod.GET, produces = "application/json")
@@ -62,38 +80,28 @@ public class ClickDetecter {
 		}
 	}
 	
-	private Object changeOwner(Point click, String uuid) {
-		
-		try (Connection connection = dataSource.getConnection()) {
-			
-			Statement stmt = connection.createStatement();
-			
-			boolean success = questDAO.setClaimed(stmt, click);
-			if(success) {
-				createCellTable(stmt);
+	private Object changeOwner(Point click, String uuid, Statement stmt, Response response) throws SQLException {
+		boolean success = questDAO.setClaimed(stmt, click);
+		response.success = success;
+		if(success) {
+			createCellTable(stmt);
 
-				String deleteQuery = "DELETE FROM cells WHERE (x=" + click.getX() + " AND y= " + click.getY() + ")";
+			String deleteQuery = "DELETE FROM cells WHERE (x=" + click.getX() + " AND y= " + click.getY() + ")";
 //				System.out.println(" --- deleteQuery: " + deleteQuery);
-				stmt.executeUpdate(deleteQuery);
+			stmt.executeUpdate(deleteQuery);
 
-				int value = getCellValue(click);
+			int value = getCellValue(click);
 //				System.out.println(" --- getCellValue: " + value);
-				String insertQuery = "INSERT INTO cells VALUES (" + click.getX() + ", " + click.getY() + ", '" + uuid
-						+ "', " + value + ")"; // ON CONFLICT DO UPDATE
+			String insertQuery = "INSERT INTO cells VALUES (" + click.getX() + ", " + click.getY() + ", '" + uuid
+					+ "', " + value + ")"; // ON CONFLICT DO UPDATE
 //				System.out.println(" --- insertQuery: " + insertQuery);
-				stmt.executeUpdate(insertQuery);
-			}
-
-			return fetchCells(click.getLat(), click.getLng());
-		} catch (Exception e) {
-			e.printStackTrace();
-			
-			StringWriter sw = new StringWriter();
-			e.printStackTrace(new PrintWriter(sw));
-			String stackTrace = sw.toString();
-
-			return "error: " + e + "\n" + stackTrace;
+			stmt.executeUpdate(insertQuery);
 		}
+
+//		Object cells = fetchCells(click.getLat(), click.getLng());
+		List<Cell> cells = fetchCells(stmt);
+		response.cells = cells;
+		return cells;
 	}
 
 	private int getCellValue(Point click) {
@@ -125,14 +133,7 @@ public class ClickDetecter {
 	private Object fetchCells(Double lat, Double lng) {
 		try (Connection connection = dataSource.getConnection()) {
 			Statement stmt = connection.createStatement();
-			createCellTable(stmt);
-			
-			ResultSet rs = stmt.executeQuery("SELECT * FROM cells");
-			List<Cell> cells = new ArrayList<Cell>();
-			while (rs.next()) {
-				cells.add(new Cell(rs.getInt("x"), rs.getInt("y"), rs.getString("uuid"), rs.getString("value")));
-			}
-			return cells;
+			return fetchCells(stmt);
 		} catch (Exception e) {
 			StringWriter sw = new StringWriter();
 			e.printStackTrace(new PrintWriter(sw));
@@ -140,6 +141,17 @@ public class ClickDetecter {
 
 			return "error: " + e + "\n" + stackTrace;
 		}
+	}
+
+	private List<Cell> fetchCells(Statement stmt) throws SQLException {
+		createCellTable(stmt);
+		
+		ResultSet rs = stmt.executeQuery("SELECT * FROM cells");
+		List<Cell> cells = new ArrayList<Cell>();
+		while (rs.next()) {
+			cells.add(new Cell(rs.getInt("x"), rs.getInt("y"), rs.getString("uuid"), rs.getString("value")));
+		}
+		return cells;
 	}
 
 	private Object saveClick(Point click, String uuid) throws IOException {
