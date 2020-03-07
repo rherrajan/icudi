@@ -1,5 +1,8 @@
 package tk.icudi.map;
 
+import com.javadocmd.simplelatlng.LatLng;
+import com.javadocmd.simplelatlng.util.LengthUnit;
+
 public class Point {
 
 	double middleLat = 50.0075;
@@ -33,6 +36,37 @@ public class Point {
 		return new Point(lat, lng);
 	}
 	
+	public double distFrom(Point other) {
+		return distFrom(this.lat, this.lng, other.lat, other.lng);
+	}
+	
+	public static double distFrom(double lat1, double lng1, double lat2, double lng2) {
+		LatLng point1 = new LatLng(lat1, lng1);
+		LatLng point2 = new LatLng(lat2, lng2);
+		return com.javadocmd.simplelatlng.LatLngTool.distance(point1, point2, LengthUnit.METER);
+	}
+
+	public double getAngleFrom(Point userLoc) {
+		double longDistance = this.lng - userLoc.lng;
+		double latDistance = this.lat - userLoc.lat;
+		double hypothenuse = Math.sqrt((longDistance * longDistance) + (latDistance * latDistance));
+		
+		if(hypothenuse == 0){
+			return 0;
+		}
+		
+		double vAngle = (Math.acos(latDistance / hypothenuse) * 360) / (2 * Math.PI);
+		if(longDistance < 0){
+			vAngle = 360 - vAngle;
+		}
+		
+		return vAngle;
+	}
+	
+	public Direction getDirectionFrom(Point userLoc) {
+		return Direction.valueOfAngle(getAngleFrom(userLoc));
+	}
+	
 	public Double getLat() {
 		return lat;
 	}
@@ -48,5 +82,6 @@ public class Point {
 	public int getY() {
 		return y;
 	}
+
 	
 }

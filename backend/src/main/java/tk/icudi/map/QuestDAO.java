@@ -9,11 +9,16 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
+import org.apache.tomcat.util.json.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -22,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -87,24 +93,25 @@ public class QuestDAO {
 	public String setClaimed(Statement stmt, Point click) throws SQLException {
 
 		createTable(stmt);
-		
-		String selectQuery = "SELECT * FROM quest WHERE x=" + click.getX() +" AND y=" + click.getY() + " AND claimed=false";
+
+		String selectQuery = "SELECT * FROM quest WHERE x=" + click.getX() + " AND y=" + click.getY()
+				+ " AND claimed=false";
 //		System.out.println(" --- selectQuery: " + selectQuery);
 		ResultSet rs = stmt.executeQuery(selectQuery);
 		boolean hasItems = rs.next();
 //		System.out.println(" --- hasItems: " + hasItems);
-		if(!hasItems) {
+		if (!hasItems) {
 			return "";
 		}
 		String foundItem = rs.getString("hit");
 		System.out.println("  --- found: " + foundItem);
-		
-		String updateQuery = "UPDATE quest SET claimed=true WHERE x=" + click.getX() +" AND y=" + click.getY();
+
+		String updateQuery = "UPDATE quest SET claimed=true WHERE x=" + click.getX() + " AND y=" + click.getY();
 //		System.out.println(" --- updateQuery: " + updateQuery);
-		stmt.executeUpdate(updateQuery);	    
+		stmt.executeUpdate(updateQuery);
 		return foundItem;
 	}
-	
+
 	@RequestMapping(value = "/selectQuests", method = RequestMethod.GET, produces = "application/json")
 	@ResponseBody
 	public Object getQuests() throws SQLException {
@@ -119,8 +126,7 @@ public class QuestDAO {
 			return "error: " + e + "\n" + stackTrace;
 		}
 	}
-	
-	
+
 	public List<Quest> getQuests(Statement stmt) throws SQLException {
 		createTable(stmt);
 
@@ -136,14 +142,15 @@ public class QuestDAO {
 	public Object getHighscore() {
 		try (Connection connection = dataSource.getConnection()) {
 			Statement stmt = connection.createStatement();
-			ResultSet rs = stmt.executeQuery("SELECT uuid, COUNT (uuid) FROM quest WHERE claimed=true GROUP BY uuid ORDER BY count DESC");
-			
+			ResultSet rs = stmt.executeQuery(
+					"SELECT uuid, COUNT (uuid) FROM quest WHERE claimed=true GROUP BY uuid ORDER BY count DESC");
+
 			List<Object> score = new ArrayList<Object>();
 			while (rs.next()) {
 				score.add(Arrays.asList(rs.getString("uuid"), rs.getString("count")));
 			}
 			return score;
-			
+
 		} catch (Exception e) {
 			StringWriter sw = new StringWriter();
 			e.printStackTrace(new PrintWriter(sw));
@@ -152,9 +159,83 @@ public class QuestDAO {
 			return "error: " + e + "\n" + stackTrace;
 		}
 	}
-	
 
-	
+	public Object getNearestHit(Double lat, Double lng, String uuid) {
+		try (Connection connection = dataSource.getConnection()) {
+			Statement stmt = connection.createStatement();
+			return getNearestHit(stmt, lat, lng, uuid);
+		} catch (Exception e) {
+			StringWriter sw = new StringWriter();
+			e.printStackTrace(new PrintWriter(sw));
+			String stackTrace = sw.toString();
+			return "error: " + e + "\n" + stackTrace;
+		}
+	}
+
+	private Object getNearestHit(Statement stmt, Double lat, Double lng, String uuid) throws SQLException {
+		ResultSet rs = stmt.executeQuery("SELECT * FROM quest WHERE claimed=false AND uuid='" + uuid + "'");
+
+		List<Quest> quests = new ArrayList<Quest>();
+		while (rs.next()) {
+			quests.add(new Quest(rs.getInt("x"), rs.getInt("y"), rs.getString("uuid"), rs.getString("hit"),
+					rs.getBoolean("claimed"), rs.getTimestamp("time")));
+		}
+
+		Point playerLocation = new Point(lat, lng);
+
+		Optional<Hit> nearestHit = quests.stream().map(quest -> calculuateHit(quest, playerLocation)) //
+				.sorted(Comparator.comparingDouble(Hit::getDistInMeter)).findFirst();
+
+
+		return nearestHit.get();
+	}
+
+	public static class Hit {
+		// {"pageid":7960945,"ns":0,"title":"St. Joseph
+		// (Mainz)","lat":50.00982,"lon":8.2625,"dist":41,"primary":"","type":"landmark"}
+		private String title;
+		private Double lat;
+		private Double lon;
+		private double distInMeter;
+		private Direction direction;
+
+		public String getTitle() {
+			return title;
+		}
+
+		public Double getLat() {
+			return lat;
+		}
+
+		public Double getLon() {
+			return lon;
+		}
+
+		public double getDistInMeter() {
+			return distInMeter;
+		}
+
+		public Direction getDirection() {
+			return direction;
+		}
+	}
+
+	private Hit calculuateHit(Quest entry, Point playerLocation) {
+		String hitString = entry.getHit();
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		try {
+			Hit hit = objectMapper.readValue(hitString, Hit.class);
+			Point poi = new Point(hit.lat, hit.lon);
+			hit.distInMeter = poi.distFrom(playerLocation);
+			hit.direction = poi.getDirectionFrom(playerLocation);
+			System.out.println(" --- enfernung zu '" + hit.title + "' : '" + hit.distInMeter + "' " + hit.direction);
+			return hit;
+		} catch (IOException e) {
+			throw new RuntimeException("could not parse '" + hitString + "'", e);
+		}
+	}
+
 	@RequestMapping(value = "/dropQuestDB", method = RequestMethod.GET, produces = "application/json")
 	@ResponseBody
 	Object dropDB() throws IOException {
@@ -175,7 +256,5 @@ public class QuestDAO {
 	public void setVaryResponseHeader(HttpServletResponse response) {
 		response.setHeader("Access-Control-Allow-Origin", "*");
 	}
-
-
 
 }

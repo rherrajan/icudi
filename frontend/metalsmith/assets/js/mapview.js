@@ -43,10 +43,6 @@ function loadMap(){
 };
 
 
-function showHint() {
-	alert(" --- Du schaffst das schon --- ");
-}
-
 function onZoomed() {
 	if(map.getZoom() < 18){
 	  mapCells.clearLayers();
@@ -58,14 +54,14 @@ function onZoomed() {
 function activateZoom(activate) {
 	if(activate){
 	  zoomControl.addTo(map);
-	  map.touchZoom.disable();
-	  map.doubleClickZoom.disable();
-	  map.scrollWheelZoom.disable();
-	} else {
-	  zoomControl.remove();
 	  map.touchZoom.enable();
 	  map.doubleClickZoom.enable();
 	  map.scrollWheelZoom.enable();
+	} else {
+	  zoomControl.remove();
+	  map.touchZoom.disable();
+	  map.doubleClickZoom.disable();
+	  map.scrollWheelZoom.disable();
 	}
 }
 
@@ -163,6 +159,7 @@ function requestPlayerRedraw(e) {
 			    	alert(responseJsonData.foundItem.title + " gefunden");
 			    	
 					document.getElementsByClassName("action_button_zoom")[0].style.display = "inline";
+					document.getElementsByClassName("action_button_hint")[0].style.display = "inline";
 
 			    }
 				drawPlayerTiles(e.latlng.lat, e.latlng.lng, responseJsonData.cells);
@@ -204,6 +201,27 @@ function startGame() {
 	xhttp.send();
 	
 	checkForUpdates();
+}
+
+function requestHint() {
+	var hintURL = createBackendURL("getHint") + "?uuid=" + getUUID() + "&lat=" + map.getCenter().lat + "&lng=" + map.getCenter().lng;
+	
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4) {
+			if(this.status == 200){
+				showHint(JSON.parse(xhttp.responseText));
+			} else {
+				alert("could not connect to database. http status: " + this.status);
+			}
+		};
+	}
+	xhttp.open("GET", hintURL, true);
+	xhttp.send();
+}
+
+function showHint(data) {
+	alert(data.title + " ist in " + Math.round(data.distInMeter) + " Meter Entfernung. Richtung: " + data.direction);
 }
 
 function checkForUpdates() {
