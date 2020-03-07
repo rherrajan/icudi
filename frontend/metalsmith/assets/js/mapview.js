@@ -42,6 +42,11 @@ function loadMap(){
   });
 };
 
+
+function showHint() {
+	alert(" --- Du schaffst das schon --- ");
+}
+
 function onZoomed() {
 	if(map.getZoom() < 18){
 	  mapCells.clearLayers();
@@ -156,8 +161,9 @@ function requestPlayerRedraw(e) {
 			    	console.log("foundItem: ", responseJsonData.foundItem);
 			        L.marker([responseJsonData.foundItem.lat, responseJsonData.foundItem.lon]).addTo(hitMarkers);
 			    	alert(responseJsonData.foundItem.title + " gefunden");
-					var action_button_zoom = document.getElementsByClassName("action_button_zoom")[0];
-					action_button_zoom.style.display = "inline"; 
+			    	
+					document.getElementsByClassName("action_button_zoom")[0].style.display = "inline";
+
 			    }
 				drawPlayerTiles(e.latlng.lat, e.latlng.lng, responseJsonData.cells);
 			} else {
