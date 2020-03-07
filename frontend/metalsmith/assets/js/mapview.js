@@ -9,9 +9,9 @@ function loadMap(){
 
   // initialize map
   map = L.map('mapDiv', { zoomControl: false }).setView([boardCenterLat, boardCenterLng], 18);
-  map.touchZoom.disable();
-  map.doubleClickZoom.disable();
-  map.scrollWheelZoom.disable();
+  zoomControl = L.control.zoom();
+  map.on('zoomend', onZoomed);
+  activateZoom(false);
 
   var lc = L.control.locate({
     position: 'bottomright',
@@ -41,6 +41,28 @@ function loadMap(){
     onDragEnd(map.getCenter());
   });
 };
+
+function onZoomed() {
+	if(map.getZoom() < 18){
+	  mapCells.clearLayers();
+	} else {
+	  onDragEnd(map.getCenter());
+	}
+}
+
+function activateZoom(activate) {
+	if(activate){
+	  zoomControl.addTo(map);
+	  map.touchZoom.disable();
+	  map.doubleClickZoom.disable();
+	  map.scrollWheelZoom.disable();
+	} else {
+	  zoomControl.remove();
+	  map.touchZoom.enable();
+	  map.doubleClickZoom.enable();
+	  map.scrollWheelZoom.enable();
+	}
+}
 
 function requestRedraw(lat, lng) {
 	var getCellsURL = createBackendURL("getCells") + "?uuid=" + getUUID() + "&lat=" + lat + "&lng=" + lng;
@@ -73,6 +95,10 @@ function drawMap(cellData, lat, lng) {
 }
 
 function drawTiles(lat, lng) {
+  if(map.getZoom() < 18){
+    return;
+  }
+
   mapCells.clearLayers();
   for (x = -2; x <= +2; x++) {
     for (y = -6; y <= +6; y++) {
@@ -130,7 +156,8 @@ function requestPlayerRedraw(e) {
 			    	console.log("foundItem: ", responseJsonData.foundItem);
 			        L.marker([responseJsonData.foundItem.lat, responseJsonData.foundItem.lon]).addTo(hitMarkers);
 			    	alert(responseJsonData.foundItem.title + " gefunden");
-
+					var action_button_zoom = document.getElementsByClassName("action_button_zoom")[0];
+					action_button_zoom.style.display = "inline"; 
 			    }
 				drawPlayerTiles(e.latlng.lat, e.latlng.lng, responseJsonData.cells);
 			} else {

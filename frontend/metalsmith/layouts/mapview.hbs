@@ -12,9 +12,11 @@
 	{{> mapview }}
 	
 	<button onclick="startGame()">Neues Ziel</button> 
-	
 	<span class="questname">nichts</span> <a class="wikipedia-link" target="_blank" href="https://de.wikipedia.org">&#9432;</a> 
-			
+		
+	<div class="actions">
+		<button class="action_button_zoom" style="display: none" onclick="activateZoom(true);this.style.display='none';">Zoom Buttons einblenden</button>
+	</div>	
     {{> footer }}
     
 	<!-- fill plant map -->
