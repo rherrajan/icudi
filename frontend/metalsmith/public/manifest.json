@@ -1,11 +1,11 @@
 {
-  "name": "icudi",
+  "name": "Mainz entdecken",
   "short_name": "icudi",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#fff",
   "Theme_color": "#7e5c00",
-  "description": "my description of the app",
+  "description": "Entdecke Sehenswürdigkeiten und bekannte Orte in Mainz",
   "icons": [
     {
       "src":"assets/icons/favicon-192x192.png",
