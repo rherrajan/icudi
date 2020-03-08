@@ -246,7 +246,7 @@ function onVersionResponse(data) {
   if(typeof oldBuildtime !== 'undefined'){
   	if(oldBuildtime != newBuildtime){
   	    console.log("oldBuildtime: " + oldBuildtime + "\n newBuildtime: " + newBuildtime);
-  	    alert("neue Software.Version entdeckt. Datum: " + newBuildtime + ". Lade neu");
+  	    // alert("neue Software.Version entdeckt. Datum: " + newBuildtime + ". Lade neu");
   	    location.reload(); 
   	}
   }

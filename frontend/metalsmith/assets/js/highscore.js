@@ -26,7 +26,7 @@ function showHighscore(data) {
   
   const markup = `
 	<ul class="highscore">
-	    ${data.map(element => `<li><font color="${getColor(element[0], 1)}">Spieler</font> hat ${element[1]} Tiles</li>`)}
+	    ${data.map(element => `<li><font color="${getColor(element[0], 1)}">Spieler</font> hat ${element[1]} Punkte</li>`)}
 	</ul>
   `;
 
