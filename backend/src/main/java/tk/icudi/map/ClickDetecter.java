@@ -68,7 +68,7 @@ public class ClickDetecter {
 		return fetchCells(lat, lng);
 	}
 
-	@RequestMapping(value = "/dropDB", method = RequestMethod.GET, produces = "application/json")
+	@RequestMapping(value = "/dropCellDB", method = RequestMethod.GET, produces = "application/json")
 	@ResponseBody
 	Object dropDB() throws IOException {
 		try (Connection connection = dataSource.getConnection()) {

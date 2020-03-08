@@ -160,7 +160,8 @@ public class QuestDAO {
 	public Object getNearestHit(Double lat, Double lng, String uuid) {
 		try (Connection connection = dataSource.getConnection()) {
 			Statement stmt = connection.createStatement();
-			return getNearestHit(stmt, lat, lng, uuid);
+			Optional<Hit> nearestHit = getNearestHit(stmt, lat, lng, uuid);
+			return nearestHit.orElse(new Hit());
 		} catch (Exception e) {
 			StringWriter sw = new StringWriter();
 			e.printStackTrace(new PrintWriter(sw));
@@ -169,7 +170,7 @@ public class QuestDAO {
 		}
 	}
 
-	private Object getNearestHit(Statement stmt, Double lat, Double lng, String uuid) throws SQLException {
+	private Optional<Hit> getNearestHit(Statement stmt, Double lat, Double lng, String uuid) throws SQLException {
 		ResultSet rs = stmt.executeQuery("SELECT * FROM quest WHERE claimed=false AND uuid='" + uuid + "'");
 
 		List<Quest> quests = new ArrayList<Quest>();
@@ -184,7 +185,7 @@ public class QuestDAO {
 				.sorted(Comparator.comparingDouble(Hit::getDistInMeter)).findFirst();
 
 
-		return nearestHit.get();
+		return nearestHit;
 	}
 
 	public static class Hit {
@@ -194,7 +195,7 @@ public class QuestDAO {
 		private Double lat;
 		private Double lon;
 		private double distInMeter;
-		private Direction direction;
+		private String direction;
 
 		public String getTitle() {
 			return title;
@@ -212,7 +213,7 @@ public class QuestDAO {
 			return distInMeter;
 		}
 
-		public Direction getDirection() {
+		public String getDirection() {
 			return direction;
 		}
 	}
@@ -225,7 +226,8 @@ public class QuestDAO {
 			Hit hit = objectMapper.readValue(hitString, Hit.class);
 			Point poi = new Point(hit.lat, hit.lon);
 			hit.distInMeter = poi.distFrom(playerLocation);
-			hit.direction = poi.getDirectionFrom(playerLocation);
+			Direction direction = poi.getDirectionFrom(playerLocation);
+			hit.direction = direction != null ? direction.getName() : null;
 			System.out.println(" --- enfernung zu '" + hit.title + "' : '" + hit.distInMeter + "' " + hit.direction);
 			return hit;
 		} catch (IOException e) {

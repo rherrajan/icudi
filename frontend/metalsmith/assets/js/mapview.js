@@ -221,7 +221,13 @@ function requestHint() {
 }
 
 function showHint(data) {
-	alert(data.title + " ist in " + Math.round(data.distInMeter) + " Meter Entfernung. Richtung: " + data.direction);
+	if(data.title){
+		alert(data.title + " ist in " + Math.round(data.distInMeter) + " Meter Entfernung. Richtung: " + data.direction);
+		document.getElementsByClassName("action_button_hint")[0].style.display = "none";
+	} else {
+		alert("Kein Ziel vorhanden");
+	}
+
 }
 
 function checkForUpdates() {
@@ -246,7 +252,7 @@ function onVersionResponse(data) {
   if(typeof oldBuildtime !== 'undefined'){
   	if(oldBuildtime != newBuildtime){
   	    console.log("oldBuildtime: " + oldBuildtime + "\n newBuildtime: " + newBuildtime);
-  	    // alert("neue Software.Version entdeckt. Datum: " + newBuildtime + ". Lade neu");
+  	    alert("neue Software.Version entdeckt. Datum: " + newBuildtime + ". Lade neu");
   	    location.reload(); 
   	}
   }
