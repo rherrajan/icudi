@@ -160,6 +160,7 @@ function requestPlayerRedraw(e) {
 			    	
 					document.getElementsByClassName("action_button_zoom")[0].style.display = "inline";
 					document.getElementsByClassName("action_button_hint")[0].style.display = "inline";
+					document.getElementsByClassName("action_button_nearest_quest")[0].style.display = "inline";
 
 			    }
 				drawPlayerTiles(e.latlng.lat, e.latlng.lng, responseJsonData.cells);
@@ -202,6 +203,36 @@ function startGame() {
 	
 	checkForUpdates();
 }
+
+function newNearestQuest() {
+	var hintURL = createBackendURL("getNearestQuest") + "?uuid=" + getUUID() + "&lat=" + map.getCenter().lat + "&lng=" + map.getCenter().lng;
+	
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4) {
+			if(this.status == 200){
+				showNewQuest(JSON.parse(xhttp.responseText));
+			} else {
+				alert("could not connect to database. http status: " + this.status);
+			}
+		};
+	}
+	xhttp.open("GET", hintURL, true);
+	xhttp.send();
+}
+
+function showNewQuest(responseJsonData) {
+	var questname = document.getElementsByClassName("questname")[0];
+	var hit = responseJsonData.query.geosearch[0];
+	console.log(hit.title + ": https://de.wikipedia.org/?curid="+hit.pageid);
+	questname.innerHTML=hit.title;
+
+	var wikipediaLink = document.getElementsByClassName("wikipedia-link")[0];
+	wikipediaLink.href="https://de.wikipedia.org/?curid="+hit.pageid;
+	
+	document.getElementsByClassName("action_button_nearest_quest")[0].style.display = "none";		
+}
+
 
 function requestHint() {
 	var hintURL = createBackendURL("getHint") + "?uuid=" + getUUID() + "&lat=" + map.getCenter().lat + "&lng=" + map.getCenter().lng;

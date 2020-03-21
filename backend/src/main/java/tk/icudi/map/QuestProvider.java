@@ -61,6 +61,22 @@ public class QuestProvider {
 		return generator.nextInt(diff) + low;
 	}
 
+	@RequestMapping(value = "/getNearestQuest", method = RequestMethod.GET, produces = "application/json")
+	@ResponseBody
+	String getNearestQuest(@RequestParam String lat, @RequestParam String lng, @RequestParam String uuid) throws IOException {
+		
+		String usedURL = MessageFormat.format(geosearchUrlTemplate, lat, lng);	
+		RestTemplate restTemplate = new RestTemplate();
+		ResponseEntity<String> response = restTemplate.getForEntity(usedURL, String.class);
+		if(response.getStatusCode().is2xxSuccessful()){
+			questDAO.saveQuest(response, uuid);
+		} else {
+			System.out.println("error: " + response);
+		}
+
+		return response.getBody();
+	}
+	
 	@ModelAttribute
 	public void setVaryResponseHeader(HttpServletResponse response) {
 		response.setHeader("Access-Control-Allow-Origin", "*");
