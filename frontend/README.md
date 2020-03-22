@@ -3,7 +3,7 @@ icudi
 
 Description
 ----------------------------------------------------
-my description of the app
+Entdecke Sehenswürdigkeiten und bekannte Orte in Mainz
 
 
 Build the static frontend

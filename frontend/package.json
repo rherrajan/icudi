@@ -1,7 +1,7 @@
 {
   "name": "icudi",
   "version": "1.0.0",
-  "description": "my description of the app",
+  "description": "Entdecke Sehenswürdigkeiten und bekannte Orte in Mainz",
   "main": "build.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

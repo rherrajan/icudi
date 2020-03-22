@@ -1,6 +1,6 @@
 ---
 title: Highscore
-description: Systeminformation about the dynamic backend
+description: Comparision with other players
 layout: highscore.hbs
 menu-order: 9
 ---

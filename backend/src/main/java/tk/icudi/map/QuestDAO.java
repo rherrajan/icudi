@@ -34,22 +34,54 @@ public class QuestDAO {
 	@Autowired
 	private DataSource dataSource;
 
-	public void saveQuest(ResponseEntity<String> response, String uuid) {
-		// System.out.println(" --- response: " + response);
+	public JsonNode saveFreeQuest(ResponseEntity<String> response, String uuid) throws Exception {
+		ObjectMapper mapper = new ObjectMapper();
+
+		JsonNode jsonResponse = mapper.readTree(response.getBody());
+
+		JsonNode hits = jsonResponse.get("query").get("geosearch");
+		
+		try (Connection connection = dataSource.getConnection()) {
+			Statement stmt = connection.createStatement();
+			for (JsonNode hit : hits) {
+				if(!requestedToday(stmt, hit, uuid)){
+					System.out.println("  --- free: " + hit.get("title").asText());
+					saveQuestInDB(hit, uuid);
+					return hit;
+				} else {
+					System.out.println("  --- already found today: " + hit.get("title").asText());
+				}
+			}
+		}
+	
+		throw new RuntimeException("no quest available");
+	}
+
+	public JsonNode saveQuest(ResponseEntity<String> response, String uuid) {
 		ObjectMapper mapper = new ObjectMapper();
 		try {
 			JsonNode jsonResponse = mapper.readTree(response.getBody());
-
-//			System.out.println(" --- jsonResponse: " + jsonResponse);
 			JsonNode hit = jsonResponse.get("query").get("geosearch").get(0);
 			saveQuestInDB(hit, uuid);
-
+			return hit;
 		} catch (IOException e) {
 			e.printStackTrace();
+			return null;
 		}
-
 	}
+	
+	private boolean requestedToday(Statement stmt, JsonNode hit, String uuid) throws SQLException {
+		String lat = hit.get("lat").asText();
+		String lon = hit.get("lon").asText();
+		Point location = new Point(lat, lon);
+		
+		String query = "SELECT * FROM quest WHERE x='" + location.getX() + "' AND y='" + location.getY() + "' AND uuid='" + uuid + "' AND time > now() - interval '1 day'";
+		//System.out.println("  --- query: " + query);
+		ResultSet rs = stmt.executeQuery(query);
 
+		return rs.next();
+	}
+	
 	private void createTable(Statement stmt) throws SQLException {
 		String createQuery = "CREATE TABLE IF NOT EXISTS quest (x INT NOT NULL, y INT NOT NULL, uuid TEXT, hit TEXT, claimed BOOLEAN, time TIMESTAMP)";
 //		System.out.println(" --- createQuery: " + createQuery);
