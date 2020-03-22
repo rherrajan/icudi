@@ -32,3 +32,11 @@ body {
   float: right;
 }
 
+.action_buttons {
+  overflow: auto;
+  white-space: nowrap;
+}
+
+.action_buttons button {
+  display: inline-block;
+}

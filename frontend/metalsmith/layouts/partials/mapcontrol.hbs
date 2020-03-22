@@ -1,10 +1,11 @@
 <div id="mapControl" style="height: 100px;">
 	<button onclick="startGame()">Neues Ziel</button> 
 	<span class="questname">nichts</span> <a class="wikipedia-link" target="_blank" href="https://de.wikipedia.org">&#9432;</a> 
-		
-	<div class="actions">
-		<button class="action_button_zoom" style="display: none" onclick="activateZoom(true);this.style.display='none';">Zoom Buttons einblenden</button>
-		<button class="action_button_hint" style="display: none" onclick="requestHint();">Tipp einblenden</button>
+
+	<div class="action_buttons">
+		<button class="action_button_zoom" style="display: inline" onclick="activateZoom(true);this.style.display='none';">Zoom Buttons einblenden</button>
+		<button class="action_button_hint" style="display: inline" onclick="requestHint();">Tipp einblenden</button>
 		<button class="action_button_nearest_quest" style="display: inline" onclick="newNearestQuest();">Nahes Ziel</button>
 	</div>
+
 </div>
