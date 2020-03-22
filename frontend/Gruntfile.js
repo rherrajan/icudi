@@ -22,7 +22,7 @@ module.exports = function(grunt) {
 						options : {
 							metadata : {
 								title : 'icudi',
-								description : 'my description of the app'
+								description : 'Entdecke Sehenswürdigkeiten und bekannte Orte in Mainz'
 							},
 							plugins : {
 								'metalsmith-collections' : {

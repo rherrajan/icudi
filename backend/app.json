@@ -1,5 +1,5 @@
 {
   "name": "icudi",
-  "description": "my description of the app",
+  "description": "Entdecke Sehenswürdigkeiten und bekannte Orte in Mainz",
   "addons": [ "heroku-postgresql" ]
 }
