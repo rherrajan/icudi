@@ -1,7 +1,7 @@
 {{> doc-head }}
-<body>
-    {{> header }}
-
+<body style="height: 100%;">
+	{{> header }}
+	
 	<!-- Leaflet -->
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css" integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ==" crossorigin=""/>
 
@@ -10,15 +10,8 @@
     </main>
 
 	{{> mapview }}
+	{{> mapcontrol }}
 	
-	<button onclick="startGame()">Neues Ziel</button> 
-	<span class="questname">nichts</span> <a class="wikipedia-link" target="_blank" href="https://de.wikipedia.org">&#9432;</a> 
-		
-	<div class="actions">
-		<button class="action_button_zoom" style="display: none" onclick="activateZoom(true);this.style.display='none';">Zoom Buttons einblenden</button>
-		<button class="action_button_hint" style="display: none" onclick="requestHint();">Tipp einblenden</button>
-		<button class="action_button_nearest_quest" style="display: inline" onclick="newNearestQuest();">Nahes Ziel</button>
-	</div>	
     {{> footer }}
     
 	<!-- fill plant map -->

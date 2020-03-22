@@ -101,7 +101,7 @@ function drawTiles(lat, lng) {
   }
 
   mapCells.clearLayers();
-  for (x = -2; x <= +2; x++) {
+  for (x = -3; x <= +3; x++) {
     for (y = -6; y <= +6; y++) {
       drawTile(mapCells, lat+(x*latTileDistance), lng+(y*lngTileDistance));
     }
