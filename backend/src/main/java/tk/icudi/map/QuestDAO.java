@@ -43,6 +43,7 @@ public class QuestDAO {
 		
 		try (Connection connection = dataSource.getConnection()) {
 			Statement stmt = connection.createStatement();
+			createTable(stmt);
 			for (JsonNode hit : hits) {
 				if(!requestedToday(stmt, hit, uuid)){
 					System.out.println("  --- free: " + hit.get("title").asText());
