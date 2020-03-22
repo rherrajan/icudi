@@ -157,11 +157,13 @@ function requestPlayerRedraw(e) {
 			    	console.log("foundItem: ", responseJsonData.foundItem);
 			        L.marker([responseJsonData.foundItem.lat, responseJsonData.foundItem.lon]).addTo(hitMarkers);
 			    	alert(responseJsonData.foundItem.title + " gefunden");
-			    	
+
 					document.getElementsByClassName("action_button_zoom")[0].style.display = "inline";
 					document.getElementsByClassName("action_button_hint")[0].style.display = "inline";
 					document.getElementsByClassName("action_button_nearest_quest")[0].style.display = "inline";
+					document.getElementsByClassName("action_button_additional_quest")[0].style.display = "inline";
 
+			    	getQuests();
 			    }
 				drawPlayerTiles(e.latlng.lat, e.latlng.lng, responseJsonData.cells);
 			} else {
@@ -175,6 +177,22 @@ function requestPlayerRedraw(e) {
 }
 
 function startGame() {
+	callForQuests(function(data) {
+	  showNewQuest(data);
+	  var questname = document.getElementsByClassName("questname")[0];	
+	  alert("finde " + questname.innerHTML);
+	});
+}
+
+function getQuests() {
+	callForQuests(function(data) {
+	  showNewQuest(data);
+	  var questname = document.getElementsByClassName("questname")[0];	
+	  alert("finde " + questname.innerHTML);
+	});
+}
+
+function callForQuests(callback) {
 	
 	var questname = document.getElementsByClassName("questname")[0];
 	questname.innerHTML="...";
@@ -184,15 +202,7 @@ function startGame() {
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4) {
 			if(this.status == 200){
-			    var responseJsonData = JSON.parse(xhttp.responseText);
-				var questname = document.getElementsByClassName("questname")[0];
-				var hit = responseJsonData.query.geosearch[0];
-				console.log(hit.title + ": https://de.wikipedia.org/?curid="+hit.pageid);
-				questname.innerHTML=hit.title;
-
-				var wikipediaLink = document.getElementsByClassName("wikipedia-link")[0];
-				wikipediaLink.href="https://de.wikipedia.org/?curid="+hit.pageid;
-				
+				callback(JSON.parse(xhttp.responseText));
 			} else {
 				alert("could not connect to database. http status: " + this.status);
 			}
@@ -212,6 +222,7 @@ function newNearestQuest() {
 		if (this.readyState == 4) {
 			if(this.status == 200){
 				showNewQuest(JSON.parse(xhttp.responseText));
+  				document.getElementsByClassName("action_button_nearest_quest")[0].style.display = "none";	
 			} else {
 				alert("could not connect to database. http status: " + this.status);
 			}
@@ -229,8 +240,6 @@ function showNewQuest(responseJsonData) {
 
 	var wikipediaLink = document.getElementsByClassName("wikipedia-link")[0];
 	wikipediaLink.href="https://de.wikipedia.org/?curid="+hit.pageid;
-	
-	document.getElementsByClassName("action_button_nearest_quest")[0].style.display = "none";		
 }
 
 
@@ -277,7 +286,6 @@ function checkForUpdates() {
 	xhttp.send();
 }
 
-
 function onVersionResponse(data) {
   var newBuildtime = data.buildtime;
   if(typeof oldBuildtime !== 'undefined'){
@@ -293,4 +301,5 @@ function onVersionResponse(data) {
 }
 
 
+window.addEventListener("DOMContentLoaded", startGame);
 
