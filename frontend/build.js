@@ -20,6 +20,9 @@ Handlebars.registerHelper('date', function (date) {
 });
 
 metalsmith(__dirname)
+	.metadata({
+	    timestamp: (new Date()).getTime().toString(),
+	 })
     .source('metalsmith/markdown')
     .destination('./dist')
     .clean(true)
