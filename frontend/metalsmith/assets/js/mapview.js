@@ -234,7 +234,7 @@ function newNearestQuest() {
 
 function showNewQuest(responseJsonData) {
 	var questname = document.getElementsByClassName("questname")[0];
-	var hit = responseJsonData.query.geosearch[0];
+	var hit = responseJsonData;
 	console.log(hit.title + ": https://de.wikipedia.org/?curid="+hit.pageid);
 	questname.innerHTML=hit.title;
 

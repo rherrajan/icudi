@@ -1,6 +1,8 @@
 package tk.icudi.map;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -18,10 +20,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 @Controller
 public class QuestProvider {
 
-	private static String geosearchUrlTemplate = "https://de.wikipedia.org/w/api.php?action=query&list=geosearch&gsradius=10000&gslimit=1&gscoord={0}|{1}&gsprop=type&format=json";
+	private static String geosearchUrlTemplate = "https://de.wikipedia.org/w/api.php?action=query&list=geosearch&gsradius=10000&gslimit=10&gscoord={0}|{1}&gsprop=type&format=json";
 	
 	@Autowired
 	private QuestDAO questDAO;
@@ -47,12 +51,21 @@ public class QuestProvider {
 		RestTemplate restTemplate = new RestTemplate();
 		ResponseEntity<String> response = restTemplate.getForEntity(usedURL, String.class);
 		if(response.getStatusCode().is2xxSuccessful()){
-			questDAO.saveQuest(response, uuid);
+			try {
+				JsonNode quest = questDAO.saveFreeQuest(response, uuid);
+				return quest;
+			} catch (Exception e) {
+				StringWriter sw = new StringWriter();
+				e.printStackTrace(new PrintWriter(sw));
+				String stackTrace = sw.toString();
+
+				return "error: " + e + "\n" + stackTrace;
+			}
 		} else {
 			System.out.println("error: " + response);
 		}
 
-		return response.getBody();
+		return "error";
 	}
 
 	/** low is inclusive. high is inclusive */
@@ -63,18 +76,27 @@ public class QuestProvider {
 
 	@RequestMapping(value = "/getNearestQuest", method = RequestMethod.GET, produces = "application/json")
 	@ResponseBody
-	String getNearestQuest(@RequestParam String lat, @RequestParam String lng, @RequestParam String uuid) throws IOException {
+	Object getNearestQuest(@RequestParam String lat, @RequestParam String lng, @RequestParam String uuid) throws IOException {
 		
 		String usedURL = MessageFormat.format(geosearchUrlTemplate, lat, lng);	
 		RestTemplate restTemplate = new RestTemplate();
 		ResponseEntity<String> response = restTemplate.getForEntity(usedURL, String.class);
 		if(response.getStatusCode().is2xxSuccessful()){
-			questDAO.saveQuest(response, uuid);
+			try {
+				JsonNode hit = questDAO.saveQuest(response, uuid);
+				return hit;
+			} catch (Exception e) {
+				StringWriter sw = new StringWriter();
+				e.printStackTrace(new PrintWriter(sw));
+				String stackTrace = sw.toString();
+
+				return "error: " + e + "\n" + stackTrace;
+			}
 		} else {
-			System.out.println("error: " + response);
+			return "error: failed call";
 		}
 
-		return response.getBody();
+
 	}
 	
 	@ModelAttribute
