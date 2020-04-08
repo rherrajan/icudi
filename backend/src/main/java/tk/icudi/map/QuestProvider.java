@@ -5,11 +5,18 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Random;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.tomcat.util.json.JSONParser;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -25,7 +32,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 @Controller
 public class QuestProvider {
 
-	private static String geosearchUrlTemplate = "https://de.wikipedia.org/w/api.php?action=query&list=geosearch&gsradius=10000&gslimit=10&gscoord={0}|{1}&gsprop=type&format=json";
+	private static String geosearchUrlTemplate = "https://de.wikipedia.org/w/api.php?action=query&list=geosearch&gsradius=10000&gslimit=50&gscoord={0}|{1}&gsprop=type&format=json";
+	
+	private static String imageNameUrlTemplate = "https://de.wikipedia.org/w/api.php?action=query&pageids={0}&prop=images&format=json";
+	private static String imageFileUrlTemplate = "https://commons.wikimedia.org/wiki/Special:FilePath/{0}?width=400";
+	
 	
 	@Autowired
 	private QuestDAO questDAO;
@@ -53,7 +64,7 @@ public class QuestProvider {
 		if(response.getStatusCode().is2xxSuccessful()){
 			try {
 				JsonNode quest = questDAO.saveFreeQuest(response, uuid);
-				return quest;
+				return addInfos(quest);
 			} catch (Exception e) {
 				StringWriter sw = new StringWriter();
 				e.printStackTrace(new PrintWriter(sw));
@@ -66,6 +77,64 @@ public class QuestProvider {
 		}
 
 		return "error";
+	}
+
+	private String addInfos(JsonNode quest) {
+		JSONObject result = new JSONObject();
+		result.put("quest", new JSONObject(quest.toString()));
+		
+		String pageid = quest.get("pageid").asText();
+		
+		String imageNameURL = MessageFormat.format(imageNameUrlTemplate, pageid);	
+		System.out.println(" --- imageNameURL: " + imageNameURL);
+		
+		RestTemplate restTemplate = new RestTemplate();
+		ResponseEntity<String> responseImageName = restTemplate.getForEntity(imageNameURL, String.class);
+		if(responseImageName.getStatusCode().is2xxSuccessful()){
+			try {
+				String body = responseImageName.getBody();
+				JSONArray images = getImages(body);
+
+
+				
+				Iterator<Object> iterator = images.iterator();
+				if(iterator.hasNext()) {
+					int lastImage = -1;
+					while(iterator.hasNext()) {
+						lastImage++;
+						iterator.next();
+					}
+					JSONObject image = images.getJSONObject(lastImage);
+					if(image != null) {
+						String title = StringUtils.replace(image.getString("title"), "Datei:", "");
+						System.out.println(" --- title: " + title);
+						
+						String imageFileURL = MessageFormat.format(imageFileUrlTemplate, title);	
+						System.out.println(" --- imageFileURL: " + imageFileURL);
+												
+						result.put("imageFileURL", imageFileURL);
+					}
+				}
+				
+				System.out.println(" --- result: " + result);
+				
+				return result.toString();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} else {
+			System.out.println("error: " + responseImageName);
+		}
+
+				
+		return null;
+	}
+
+	private JSONArray getImages(String body) {
+		JSONObject jsonObject = new JSONObject(body);
+		JSONObject pages = jsonObject.getJSONObject("query").getJSONObject("pages");
+		JSONObject page = pages.getJSONObject(pages.keys().next());
+		return page.getJSONArray("images");
 	}
 
 	/** low is inclusive. high is inclusive */

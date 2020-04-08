@@ -177,7 +177,7 @@ function getQuests() {
 	callForQuests(function(data) {
 	  showNewQuest(data);
 	  var questname = document.getElementsByClassName("questname")[0];	
-	  alert("finde " + questname.innerHTML);
+	  alert("finde " + data.quest.title + "\n" + data.imageFileURL);
 	});
 }
 
@@ -210,8 +210,10 @@ function newNearestQuest() {
 
 function showNewQuest(responseJsonData) {
 	var questname = document.getElementsByClassName("questname")[0];
-	var hit = responseJsonData;
-	console.log(hit.title + ": https://de.wikipedia.org/?curid="+hit.pageid);
+
+	var hit = responseJsonData.quest;
+	console.log(hit.title + ": "+responseJsonData.imageFileURL);
+	
 	questname.innerHTML=hit.title;
 
 	var wikipediaLink = document.getElementsByClassName("wikipedia-link")[0];

@@ -23,7 +23,6 @@ public class Point {
 		double yd = (lng-middleLng)/lngTileDistance;
 		this.x = (int)Math.floor(xd);
 		this.y = (int)Math.floor(yd);
-		//System.out.println(" --- created new point: (" + x + "/" + y + "), ("+lat+"/"+lng+")");	
 	}
 
 	public Point(String latString, String lonString) {
