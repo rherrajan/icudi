@@ -177,9 +177,12 @@ function getQuests() {
 	callForQuests(function(data) {
 	  showNewQuest(data);
 	  var questname = document.getElementsByClassName("questname")[0];	
-	  alert("finde " + data.quest.title + "\n"
-	  	+ "https://de.wikipedia.org/?curid=" + data.quest.pageid + "\n"
-	  	+ data.imageFileURL);
+	  
+	  document.getElementsByClassName("questName")[0].innerHTML="finde " + data.quest.title;
+	  document.getElementsByClassName("questImage")[0].src=data.imageFileURL;
+	  document.getElementsByClassName("questNameLink")[0].href="https://de.wikipedia.org/?curid=" + data.quest.pageid;
+	  	  
+  	  document.getElementsByClassName("modal")[0].style.display = "inline";	
 	});
 }
 
