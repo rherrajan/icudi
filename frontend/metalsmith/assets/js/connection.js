@@ -1,5 +1,4 @@
 function createBackendURL(path){
-
 	if(location.hostname==="localhost"){
 		return "http://localhost:5000/" + path;
 	} else if(isIpAddress(location.hostname)) {
@@ -10,7 +9,48 @@ function createBackendURL(path){
 		    + '.herokuapp.com/'
 		    + path;
 	}
+}
 
+function callForResult(path, callback) {
+	var pathURL = createBackendURL(path)				
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4) {
+			if (this.status == 200) {
+				if (typeof callback !== "function") {
+					console.log("callback needs to be a function. But was: ", callback);
+				}
+				
+				callback(JSON.parse(xhttp.responseText));
+
+			} else {
+				console.log("error in called url. status=" + this.status + " url=" + path);
+			}
+		};
+	}
+	xhttp.open("GET", pathURL, true);
+	xhttp.send();
+}
+
+function onBackendAvailablility(callback) {
+	var pathURL = createBackendURL("systeminfo")				
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4) {
+			if(this.status != 0){
+				if (typeof callback === "function") {
+				    callback();
+				} else {
+					alert("callback needs to be a function. But was: " + typeof callback);
+				}
+			} else{
+			  console.log("backend currently unavailable. readyState=" + this.readyState + " status=" + this.status + " for url: " + pathURL);
+			  setTimeout(function() {onBackendAvailablility(callback)}, 10000);
+			}
+		};
+	}
+	xhttp.open("GET", pathURL, true);
+	xhttp.send();
 }
 
 function subdomain(host) {
@@ -30,4 +70,4 @@ function isIpAddress(ipaddress) {
     return (true)  
   }  
   return (false)  
-} 
+}

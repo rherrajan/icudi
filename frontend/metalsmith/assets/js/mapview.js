@@ -33,14 +33,22 @@ function loadMap(){
 	  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
 	  subdomains: ['a','b','c']
   }).addTo( map );
-  
-  requestRedraw(boardCenterLat, boardCenterLng);
-	
-  //Dragend event of map for update marker position
-  map.on('dragend', function(e) {
-    onDragEnd(map.getCenter());
-  });
 };
+
+
+  
+function startGame() {
+  onBackendAvailablility(function(){
+
+    requestRedraw(map.getCenter().lat, map.getCenter().lng);
+	
+	map.on('dragend', function(e) {
+	  onDragEnd(map.getCenter());
+	});
+	
+	getQuests();
+  })
+}
 
 
 function onZoomed() {
@@ -66,22 +74,11 @@ function activateZoom(activate) {
 }
 
 function requestRedraw(lat, lng) {
-	var getCellsURL = createBackendURL("getCells") + "?uuid=" + getUUID() + "&lat=" + lat + "&lng=" + lng;
+	var getCellsURL = "getCells?uuid=" + getUUID() + "&lat=" + lat + "&lng=" + lng;
 		
-	var xhttp = new XMLHttpRequest();
-	xhttp.onreadystatechange = function() {
-		if (this.readyState == 4) {
-			if(this.status == 200){
-			    var responseJsonData = JSON.parse(xhttp.responseText);
-				drawMap(responseJsonData, lat, lng);
-			} else {
-				alert("could not connect to database. http status: " + this.status);
-			}
-		};
-	}
-	
-	xhttp.open("GET", getCellsURL, true);
-	xhttp.send();
+	callForResult(getCellsURL, function(data){
+		drawMap(data, lat, lng);
+	});
 }
 
 function onDragEnd(newCenter) {
@@ -176,14 +173,6 @@ function requestPlayerRedraw(e) {
 	xhttp.send();
 }
 
-function startGame() {
-	callForQuests(function(data) {
-	  showNewQuest(data);
-	  var questname = document.getElementsByClassName("questname")[0];	
-	  alert("finde " + questname.innerHTML);
-	});
-}
-
 function getQuests() {
 	callForQuests(function(data) {
 	  showNewQuest(data);
@@ -197,21 +186,8 @@ function callForQuests(callback) {
 	var questname = document.getElementsByClassName("questname")[0];
 	questname.innerHTML="...";
 	
-	var getQuestsURL = createBackendURL("getQuests") + "?uuid=" + getUUID() + "&lat=" + map.getCenter().lat + "&lng=" + map.getCenter().lng;				
-	var xhttp = new XMLHttpRequest();
-	xhttp.onreadystatechange = function() {
-		if (this.readyState == 4) {
-			if(this.status == 200){
-				callback(JSON.parse(xhttp.responseText));
-			} else {
-				alert("could not connect to database. http status: " + this.status);
-			}
-		};
-	}
-	xhttp.open("GET", getQuestsURL, true);
-	xhttp.send();
-	
-	checkForUpdates();
+	var getQuestsURL = "getQuests?uuid=" + getUUID() + "&lat=" + map.getCenter().lat + "&lng=" + map.getCenter().lng;
+	callForResult(getQuestsURL, callback);
 }
 
 function newNearestQuest() {
