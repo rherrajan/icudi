@@ -33,14 +33,22 @@ function loadMap(){
 	  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
 	  subdomains: ['a','b','c']
   }).addTo( map );
-  
-  requestRedraw(boardCenterLat, boardCenterLng);
-	
-  //Dragend event of map for update marker position
-  map.on('dragend', function(e) {
-    onDragEnd(map.getCenter());
-  });
 };
+
+
+  
+function startGame() {
+  onBackendAvailablility(function(){
+
+    requestRedraw(map.getCenter().lat, map.getCenter().lng);
+	
+	map.on('dragend', function(e) {
+	  onDragEnd(map.getCenter());
+	});
+	
+	getQuests();
+  })
+}
 
 
 function onZoomed() {
@@ -66,22 +74,11 @@ function activateZoom(activate) {
 }
 
 function requestRedraw(lat, lng) {
-	var getCellsURL = createBackendURL("getCells") + "?uuid=" + getUUID() + "&lat=" + lat + "&lng=" + lng;
+	var getCellsURL = "getCells?uuid=" + getUUID() + "&lat=" + lat + "&lng=" + lng;
 		
-	var xhttp = new XMLHttpRequest();
-	xhttp.onreadystatechange = function() {
-		if (this.readyState == 4) {
-			if(this.status == 200){
-			    var responseJsonData = JSON.parse(xhttp.responseText);
-				drawMap(responseJsonData, lat, lng);
-			} else {
-				alert("could not connect to database. http status: " + this.status);
-			}
-		};
-	}
-	
-	xhttp.open("GET", getCellsURL, true);
-	xhttp.send();
+	callForResult(getCellsURL, function(data){
+		drawMap(data, lat, lng);
+	});
 }
 
 function onDragEnd(newCenter) {
@@ -176,19 +173,10 @@ function requestPlayerRedraw(e) {
 	xhttp.send();
 }
 
-function startGame() {
-	callForQuests(function(data) {
-	  showNewQuest(data);
-	  var questname = document.getElementsByClassName("questname")[0];	
-	  alert("finde " + questname.innerHTML);
-	});
-}
-
 function getQuests() {
 	callForQuests(function(data) {
 	  showNewQuest(data);
-	  var questname = document.getElementsByClassName("questname")[0];	
-	  alert("finde " + questname.innerHTML);
+	  showNewQuestModal(data);
 	});
 }
 
@@ -197,21 +185,8 @@ function callForQuests(callback) {
 	var questname = document.getElementsByClassName("questname")[0];
 	questname.innerHTML="...";
 	
-	var getQuestsURL = createBackendURL("getQuests") + "?uuid=" + getUUID() + "&lat=" + map.getCenter().lat + "&lng=" + map.getCenter().lng;				
-	var xhttp = new XMLHttpRequest();
-	xhttp.onreadystatechange = function() {
-		if (this.readyState == 4) {
-			if(this.status == 200){
-				callback(JSON.parse(xhttp.responseText));
-			} else {
-				alert("could not connect to database. http status: " + this.status);
-			}
-		};
-	}
-	xhttp.open("GET", getQuestsURL, true);
-	xhttp.send();
-	
-	checkForUpdates();
+	var getQuestsURL = "getQuests?uuid=" + getUUID() + "&lat=" + map.getCenter().lat + "&lng=" + map.getCenter().lng;
+	callForResult(getQuestsURL, callback);
 }
 
 function newNearestQuest() {
@@ -221,7 +196,10 @@ function newNearestQuest() {
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4) {
 			if(this.status == 200){
-				showNewQuest(JSON.parse(xhttp.responseText));
+				
+				var data = JSON.parse(xhttp.responseText);
+				showNewQuest(data);
+				showNewQuestModal(data);
   				document.getElementsByClassName("action_button_nearest_quest")[0].style.display = "none";	
 			} else {
 				alert("could not connect to database. http status: " + this.status);
@@ -232,10 +210,29 @@ function newNearestQuest() {
 	xhttp.send();
 }
 
+function showNewQuestModal(data) {
+	var questname = document.getElementsByClassName("questname")[0];	
+	  
+	document.getElementsByClassName("questName")[0].innerHTML="finde " + data.quest.title;
+	document.getElementsByClassName("questNameLink")[0].href="https://de.wikipedia.org/?curid=" + data.quest.pageid;
+
+	var questImage = document.getElementsByClassName("questImage")[0];
+	if(data.imageFileURL){
+		questImage.src=data.imageFileURL;
+		questImage.style.display = "inline";
+	} else {
+	    questImage.style.display = "none";
+	}
+
+	$('#mainzModal').modal('toggle');
+}
+
 function showNewQuest(responseJsonData) {
 	var questname = document.getElementsByClassName("questname")[0];
-	var hit = responseJsonData;
-	console.log(hit.title + ": https://de.wikipedia.org/?curid="+hit.pageid);
+
+	var hit = responseJsonData.quest;
+	console.log(hit.title + ": "+responseJsonData.imageFileURL);
+	
 	questname.innerHTML=hit.title;
 
 	var wikipediaLink = document.getElementsByClassName("wikipedia-link")[0];
@@ -300,6 +297,9 @@ function onVersionResponse(data) {
   //console.log("software version: " + oldBuildtime);
 }
 
+$('#mainzModal').on('hidden.bs.modal', function (e) {
+  	  document.getElementsByClassName("questImage")[0].src="";
+})
 
 window.addEventListener("DOMContentLoaded", startGame);
 
