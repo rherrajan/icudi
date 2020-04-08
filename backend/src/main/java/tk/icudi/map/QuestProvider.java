@@ -31,8 +31,8 @@ public class QuestProvider {
 
 	private static String geosearchUrlTemplate = "https://de.wikipedia.org/w/api.php?action=query&list=geosearch&gsradius=10000&gslimit=50&gscoord={0}|{1}&gsprop=type&format=json";
 	
-	private static String imageNameUrlTemplate = "https://de.wikipedia.org/w/api.php?action=query&pageids={0}&prop=images&imdir=descending&imlimit=5&format=json";
-	private static String imageFileUrlTemplate = "https://commons.wikimedia.org/wiki/Special:FilePath/{0}?width=400";
+	private static String imageNameUrlTemplate = "https://de.wikipedia.org/w/api.php?action=query&pageids={0}&prop=pageimages&pithumbsize=400&format=json";
+//	private static String imageFileUrlTemplate = "https://commons.wikimedia.org/wiki/Special:FilePath/{0}?width=400";
 	
 	
 	@Autowired
@@ -90,24 +90,14 @@ public class QuestProvider {
 		if(responseImageName.getStatusCode().is2xxSuccessful()){
 			try {
 				String body = responseImageName.getBody();
-				JSONArray images = getImages(body);
-
-
+				JSONObject image = getImage(body);
 				
-				Iterator<Object> iterator = images.iterator();
-				if(iterator.hasNext()) {
-					JSONObject image = images.getJSONObject(0);
-					if(image != null) {
-						String title = StringUtils.replace(image.getString("title"), "Datei:", "");
-						System.out.println(" --- title: " + title);
-						
-						String imageFileURL = MessageFormat.format(imageFileUrlTemplate, title);	
-						System.out.println(" --- imageFileURL: " + imageFileURL);
-												
-						result.put("imageFileURL", imageFileURL);
-					}
+				if(image != null) {
+					String imageFileURL = image.getString("source");
+					System.out.println(" --- imageFileURL: " + imageFileURL);			
+					result.put("imageFileURL", imageFileURL);
 				}
-				
+
 				System.out.println(" --- result: " + result);
 				
 				return result.toString();
@@ -122,11 +112,14 @@ public class QuestProvider {
 		return null;
 	}
 
-	private JSONArray getImages(String body) {
+	private JSONObject getImage(String body) {
 		JSONObject jsonObject = new JSONObject(body);
 		JSONObject pages = jsonObject.getJSONObject("query").getJSONObject("pages");
 		JSONObject page = pages.getJSONObject(pages.keys().next());
-		return page.getJSONArray("images");
+		if(page.has("thumbnail")) {
+			return page.getJSONObject("thumbnail");
+		}
+		return null;
 	}
 
 	/** low is inclusive. high is inclusive */
@@ -145,7 +138,7 @@ public class QuestProvider {
 		if(response.getStatusCode().is2xxSuccessful()){
 			try {
 				JsonNode hit = questDAO.saveQuest(response, uuid);
-				return hit;
+				return addInfos(hit);
 			} catch (Exception e) {
 				StringWriter sw = new StringWriter();
 				e.printStackTrace(new PrintWriter(sw));
