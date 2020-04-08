@@ -182,7 +182,8 @@ function getQuests() {
 	  document.getElementsByClassName("questImage")[0].src=data.imageFileURL;
 	  document.getElementsByClassName("questNameLink")[0].href="https://de.wikipedia.org/?curid=" + data.quest.pageid;
 	  	  
-  	  document.getElementsByClassName("modal")[0].style.display = "inline";	
+  	  $('#mainzModal').modal('toggle')
+  	  
 	});
 }
 
@@ -283,6 +284,9 @@ function onVersionResponse(data) {
   //console.log("software version: " + oldBuildtime);
 }
 
+$('#mainzModal').on('hidden.bs.modal', function (e) {
+  	  document.getElementsByClassName("questImage")[0].src="";
+})
 
 window.addEventListener("DOMContentLoaded", startGame);
 
