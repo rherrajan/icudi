@@ -5,16 +5,13 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Random;
 
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tomcat.util.json.JSONParser;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +31,7 @@ public class QuestProvider {
 
 	private static String geosearchUrlTemplate = "https://de.wikipedia.org/w/api.php?action=query&list=geosearch&gsradius=10000&gslimit=50&gscoord={0}|{1}&gsprop=type&format=json";
 	
-	private static String imageNameUrlTemplate = "https://de.wikipedia.org/w/api.php?action=query&pageids={0}&prop=images&format=json";
+	private static String imageNameUrlTemplate = "https://de.wikipedia.org/w/api.php?action=query&pageids={0}&prop=images&imdir=descending&imlimit=5&format=json";
 	private static String imageFileUrlTemplate = "https://commons.wikimedia.org/wiki/Special:FilePath/{0}?width=400";
 	
 	
@@ -99,12 +96,7 @@ public class QuestProvider {
 				
 				Iterator<Object> iterator = images.iterator();
 				if(iterator.hasNext()) {
-					int lastImage = -1;
-					while(iterator.hasNext()) {
-						lastImage++;
-						iterator.next();
-					}
-					JSONObject image = images.getJSONObject(lastImage);
+					JSONObject image = images.getJSONObject(0);
 					if(image != null) {
 						String title = StringUtils.replace(image.getString("title"), "Datei:", "");
 						System.out.println(" --- title: " + title);
