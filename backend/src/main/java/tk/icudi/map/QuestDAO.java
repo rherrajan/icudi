@@ -16,6 +16,7 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -45,12 +46,16 @@ public class QuestDAO {
 			Statement stmt = connection.createStatement();
 			createTable(stmt);
 			for (JsonNode hit : hits) {
-				if(!requestedToday(stmt, hit, uuid)){
-					System.out.println("  --- free: " + hit.get("title").asText());
+				String title = hit.get("title").asText();
+				if(requestedToday(stmt, hit, uuid)){
+					System.out.println("  --- already found today: " + title);
+				} else if (StringUtils.contains(title, "amt")) {
+					String type = hit.get("type").asText();
+					System.out.println("  --- is booring: " + title + " / " + type);
+				} else {
+					System.out.println("  --- free: " + title);
 					saveQuestInDB(hit, uuid);
 					return hit;
-				} else {
-					System.out.println("  --- already found today: " + hit.get("title").asText());
 				}
 			}
 		}
