@@ -24,7 +24,10 @@
       </div>
       <div class="modal-body">
         <p class="questName"></p>
-        <img class="questImage" src=""></img>
+        <div class="spinner-border text-secondary" role="status">
+		  <span class="sr-only">Loading...</span>
+		</div>
+        <img class="questImage" src="" onload="hideSpinner()"></img>
       </div>
       <div class="modal-footer">
         <a type="button" target="_blank" class="btn btn-secondary questNameLink">Mehr...</a>

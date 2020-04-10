@@ -216,15 +216,20 @@ function showNewQuestModal(data) {
 	document.getElementsByClassName("questName")[0].innerHTML="finde " + data.quest.title;
 	document.getElementsByClassName("questNameLink")[0].href="https://de.wikipedia.org/?curid=" + data.quest.pageid;
 
-	var questImage = document.getElementsByClassName("questImage")[0];
+	var questImage = document.querySelectorAll('.modal-body .questImage')[0];
 	if(data.imageFileURL){
 		questImage.src=data.imageFileURL;
 		questImage.style.display = "inline";
 	} else {
+	    hideSpinner();
 	    questImage.style.display = "none";
 	}
 
 	$('#mainzModal').modal('toggle');
+}
+
+function hideSpinner() {
+    document.querySelectorAll('.modal-body .spinner-border')[0].style.display = "none";  
 }
 
 function showNewQuest(responseJsonData) {
@@ -298,7 +303,8 @@ function onVersionResponse(data) {
 }
 
 $('#mainzModal').on('hidden.bs.modal', function (e) {
-  	  document.getElementsByClassName("questImage")[0].src="";
+  document.querySelectorAll('.modal-body .questImage')[0].src="";
+  document.querySelectorAll('.modal-body .spinner-border')[0].style.display = "inline";  
 })
 
 window.addEventListener("DOMContentLoaded", startGame);
