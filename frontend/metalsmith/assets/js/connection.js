@@ -21,7 +21,12 @@ function callForResult(path, callback) {
 					console.log("callback needs to be a function. But was: ", callback);
 				}
 				
-				callback(JSON.parse(xhttp.responseText));
+				try {
+				  var data = JSON.parse(xhttp.responseText);
+				  callback(data);
+				} catch (e) {
+				   console.error("could not parse response. Error: " + e + ". Data: \n", data);
+				}
 
 			} else {
 				console.log("error in called url. status=" + this.status + " url=" + path);

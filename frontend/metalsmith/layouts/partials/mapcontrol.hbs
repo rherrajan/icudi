@@ -5,10 +5,35 @@
 	</span>
 
 	<div class="action_buttons">
-		<button class="action_button_hint" style="display: inline" onclick="requestHint();">Tipp einblenden</button>
-	    <button class="action_button_additional_quest" style="display: inline" onclick="getQuests();this.style.display='none';">Zufälliges Ziel hinzufügen</button>
-		<button class="action_button_nearest_quest" style="display: inline" onclick="newNearestQuest();">Nahes Ziel hinzufügen</button>
-		<button class="action_button_zoom" style="display: none" onclick="activateZoom(true);this.style.display='none';">Zoom Buttons einblenden</button>
+	
+		<button class="action_button_hint"
+		  style="display: inline;padding: 0px 0px;"
+		  onclick="requestHint();"
+		  title="Blendet einen Tipp zum nähsten Ziel ein">
+		    <img style="width:50px" src="/assets/images/buttons/getTip.png"/>
+		</button>
+	    
+	    <button class="action_button_additional_quest"
+	       style="display: inline;padding: 0px 0px;"
+	       onclick="getQuests();this.style.display='none';"
+	       title="Fügt ein zufälliges Ziel aus der Umgebung hinzu">
+	         <img style="width:50px" src="/assets/images/buttons/newQuest.png"/>
+	    </button>
+	
+	    <button class="action_button_nearest_quest"
+	       style="display: inline;padding: 0px 0px;"
+	       onclick="newNearestQuest();"
+	       title="Fügt das Ziel mit der wenigsten Entfernung hinzu">
+	         <img style="width:50px;max-height:50px" src="/assets/images/buttons/proximity.png"/>
+	    </button>
+	    
+	    <button class="action_button_zoom"
+	       style="display: inline;padding: 0px 0px;"
+	       onclick="activateZoom(true);this.style.display='none';"
+	       title="Zoom Buttons einblenden">
+	         <img style="width:50px;max-height:50px" src="/assets/images/buttons/magnifier.png"/>
+	    </button>
+
 	</div>
 
 </div>

@@ -47,16 +47,16 @@ public class QuestDAO {
 			createTable(stmt);
 			for (JsonNode hit : hits) {
 				String title = hit.get("title").asText();
+				String type = hit.get("type").asText();
 				if(StringUtils.containsIgnoreCase(title, "Amt")
 					|| StringUtils.containsIgnoreCase(title, "Ministerium")
 					|| StringUtils.containsIgnoreCase(title, "Gericht")
 					|| StringUtils.containsIgnoreCase(title, "Justiz")){
-					String type = hit.get("type").asText();
 					System.out.println("  --- is booring: " + title + " / " + type);
 				} else if (requestedToday(stmt, hit, uuid)) {
-					System.out.println("  --- already found today: " + title);
+					System.out.println("  --- already found today: " + title + " / " + type);
 				} else {
-					System.out.println("  --- free: " + title);
+					System.out.println("  --- free: " + title + " / " + type);
 					saveQuestInDB(hit, uuid);
 					return hit;
 				}
